@@ -1,0 +1,182 @@
+{% extends "base.html" %}
+
+{% block title %}Profile{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="page-title">Your Profile</h1>
+    
+    <div class="profile-container">
+        <div class="profile-sidebar">
+            <div class="profile-avatar-container">
+                <img src="{{ url_for('static', filename='uploads/' + current_user.avatar) }}" alt="Profile Avatar" class="profile-avatar">
+            </div>
+            
+            <div class="profile-info">
+                <h2>{{ current_user.name }} {{ current_user.surname }}</h2>
+                <p><strong>Username:</strong> {{ current_user.username }}</p>
+                <p><strong>Email:</strong> {{ current_user.email }}</p>
+                
+                {% if current_user.university %}
+                    <p><strong>University:</strong> {{ current_user.university }}</p>
+                {% endif %}
+                
+                {% if current_user.degree %}
+                    <p><strong>Degree:</strong> {{ current_user.degree }}</p>
+                {% endif %}
+            </div>
+            
+            <div class="achievements-section">
+                <h3>Achievements</h3>
+                {% if achievements %}
+                    <div class="achievement-list">
+                        {% for achievement in achievements %}
+                            <div class="achievement-item">
+                                <img src="{{ url_for('static', filename='uploads/' + achievement.icon) }}" alt="{{ achievement.name }}" class="achievement-icon">
+                                <div class="achievement-name">{{ achievement.name }}</div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p>No achievements yet.</p>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="profile-main">
+            <div class="card">
+                <div class="card-header">Edit Profile</div>
+                <div class="card-body">
+                    <form method="POST" enctype="multipart/form-data">
+                        {{ form.hidden_tag() }}
+                        
+                        <div class="form-group">
+                            {{ form.username.label }}
+                            {{ form.username(class="form-control") }}
+                            {% if form.username.errors %}
+                                <div class="errors">
+                                    {% for error in form.username.errors %}
+                                        <span>{{ error }}</span>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="form-group">
+                            {{ form.email.label }}
+                            {{ form.email(class="form-control") }}
+                            {% if form.email.errors %}
+                                <div class="errors">
+                                    {% for error in form.email.errors %}
+                                        <span>{{ error }}</span>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="form-group">
+                            {{ form.name.label }}
+                            {{ form.name(class="form-control") }}
+                            {% if form.name.errors %}
+                                <div class="errors">
+                                    {% for error in form.name.errors %}
+                                        <span>{{ error }}</span>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="form-group">
+                            {{ form.surname.label }}
+                            {{ form.surname(class="form-control") }}
+                            {% if form.surname.errors %}
+                                <div class="errors">
+                                    {% for error in form.surname.errors %}
+                                        <span>{{ error }}</span>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="form-group">
+                            {{ form.family_name.label }}
+                            {{ form.family_name(class="form-control") }}
+                            {% if form.family_name.errors %}
+                                <div class="errors">
+                                    {% for error in form.family_name.errors %}
+                                        <span>{{ error }}</span>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="form-group">
+                            {{ form.university.label }}
+                            {{ form.university(class="form-control") }}
+                            {% if form.university.errors %}
+                                <div class="errors">
+                                    {% for error in form.university.errors %}
+                                        <span>{{ error }}</span>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="form-group">
+                            {{ form.degree.label }}
+                            {{ form.degree(class="form-control") }}
+                            {% if form.degree.errors %}
+                                <div class="errors">
+                                    {% for error in form.degree.errors %}
+                                        <span>{{ error }}</span>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="form-group">
+                            {{ form.skills.label }}
+                            {{ form.skills(class="form-control", rows=3) }}
+                            {% if form.skills.errors %}
+                                <div class="errors">
+                                    {% for error in form.skills.errors %}
+                                        <span>{{ error }}</span>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="form-group">
+                            {{ form.fields_interests.label }}
+                            {{ form.fields_interests(class="form-control", rows=3) }}
+                            {% if form.fields_interests.errors %}
+                                <div class="errors">
+                                    {% for error in form.fields_interests.errors %}
+                                        <span>{{ error }}</span>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="form-group">
+                            {{ form.avatar.label }}
+                            {{ form.avatar(class="form-control") }}
+                            {% if form.avatar.errors %}
+                                <div class="errors">
+                                    {% for error in form.avatar.errors %}
+                                        <span>{{ error }}</span>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="form-group">
+                            {{ form.submit(class="btn btn-primary") }}
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

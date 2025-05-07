@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block title %}Science Social Network - Connect with Scientists{% endblock %}
+
+{% block content %}
+<div class="landing-container">
+    <div class="landing-hero">
+        <h1>Science Social Network</h1>
+        <h2>Connect, Collaborate, and Create Science Projects Together</h2>
+        
+        <div class="landing-cta">
+            <a href="{{ url_for('auth.login') }}" class="btn btn-primary">Login</a>
+            <a href="{{ url_for('auth.register') }}" class="btn btn-secondary">Register</a>
+        </div>
+    </div>
+    
+    <div class="features-section">
+        <h3>Platform Features</h3>
+        
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">📋</div>
+                <h4>Create Projects</h4>
+                <p>Start scientific projects and invite others to collaborate with you.</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">💬</div>
+                <h4>Real-Time Chat</h4>
+                <p>Communicate with your team in real-time with project-specific chat rooms.</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">🔍</div>
+                <h4>Discover Projects</h4>
+                <p>Find and join interesting scientific projects that match your expertise.</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">🏆</div>
+                <h4>Achievements</h4>
+                <p>Earn achievements as you create projects and collaborate with others.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

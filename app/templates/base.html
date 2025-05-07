@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Scientific Collaboration Platform{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/responsive.css') }}">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    {% block head %}{% endblock %}
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <h1>Science Collab</h1>
+        </div>
+        <nav>
+            {% if current_user.is_authenticated %}
+                <ul>
+                    <li><a href="{{ url_for('projects.feed') }}">Projects</a></li>
+                    <li><a href="{{ url_for('projects.create') }}">Create Project</a></li>
+                    <li><a href="{{ url_for('users.profile') }}">Profile</a></li>
+                    <li>
+                        <div class="notifications-dropdown">
+                            <button id="notifications-btn" class="dropdown-btn">
+                                <span class="notification-icon">🔔</span>
+                                <span id="notification-count" class="notification-count"></span>
+                            </button>
+                            <div id="notifications-content" class="dropdown-content">
+                                <div id="notification-list">
+                                    <p class="loading">Loading notifications...</p>
+                                </div>
+                            </div>
+                        </div>
+                    </li>
+                    <li><a href="{{ url_for('auth.logout') }}">Logout</a></li>
+                </ul>
+            {% else %}
+                <ul>
+                    <li><a href="{{ url_for('auth.login') }}">Login</a></li>
+                    <li><a href="{{ url_for('auth.register') }}">Register</a></li>
+                </ul>
+            {% endif %}
+        </nav>
+    </header>
+    
+    <main>
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <div class="flash-messages">
+                    {% for message in messages %}
+                        <div class="flash-message">{{ message }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+        
+        {% block content %}{% endblock %}
+    </main>
+    
+    <footer>
+        <p>&copy; {{ now.year }} Scientific Collaboration Platform</p>
+    </footer>
+    
+    {% if current_user.is_authenticated %}
+    <script>
+        $(document).ready(function() {
+            // Socket.IO connection
+            const socket = io();
+            
+            // Join personal room
+            socket.on('connect', function() {
+                console.log('Connected to socket');
+            });
+            
+            // Notification dropdown
+            $('#notifications-btn').click(function() {
+                $('#notifications-content').toggle();
+                loadNotifications();
+            });
+            
+            // Close dropdown when clicking outside
+            $(document).click(function(e) {
+                if (!$(e.target).closest('.notifications-dropdown').length) {
+                    $('#notifications-content').hide();
+                }
+            });
+            
+            // Load notifications
+            function loadNotifications() {
+                $.ajax({
+                    url: '{{ url_for("notifications.feed") }}',
+                    type: 'GET',
+                    success: function(data) {
+                        renderNotifications(data);
+                        updateNotificationCount(data.length);
+                    },
+                    error: function() {
+                        $('#notification-list').html('<p>Error loading notifications</p>');
+                    }
+                });
+            }
+            
+            // Render notifications in dropdown
+            function renderNotifications(notifications) {
+                if (notifications.length === 0) {
+                    $('#notification-list').html('<p>No notifications</p>');
+                    return;
+                }
+                
+                let html = '';
+                notifications.forEach(function(notification) {
+                    let actions = '';
+                    if (notification.type === 'invite') {
+                        actions = `
+                            <div class="notification-actions">
+                                <button class="accept-btn" data-id="${notification.id}">Accept</button>
+                                <button class="reject-btn" data-id="${notification.id}">Reject</button>
+                            </div>
+                        `;
+                    }
+                    
+                    html += `
+                        <div class="notification-item" data-id="${notification.id}">
+                            <p>${notification.text}</p>
+                            <small>${new Date(notification.timestamp).toLocaleString()}</small>
+                            ${actions}
+                            <button class="dismiss-btn" data-id="${notification.id}">Dismiss</button>
+                        </div>
+                    `;
+                });
+                
+                $('#notification-list').html(html);
+                
+                // Add event listeners to buttons
+                $('.dismiss-btn').click(function(e) {
+                    e.stopPropagation();
+                    const notificationId = $(this).data('id');
+                    dismissNotification(notificationId);
+                });
+                
+                $('.accept-btn').click(function(e) {
+                    e.stopPropagation();
+                    const notificationId = $(this).data('id');
+                    acceptInvite(notificationId);
+                });
+                
+                $('.reject-btn').click(function(e) {
+                    e.stopPropagation();
+                    const notificationId = $(this).data('id');
+                    rejectInvite(notificationId);
+                });
+            }
+            
+            // Update notification count
+            function updateNotificationCount(count) {
+                if (count > 0) {
+                    $('#notification-count').text(count).show();
+                } else {
+                    $('#notification-count').text('').hide();
+                }
+            }
+            
+            // Dismiss notification
+            function dismissNotification(id) {
+                $.ajax({
+                    url: `/notifications/${id}/dismiss`,
+                    type: 'GET',
+                    success: function(data) {
+                        if (data.success) {
+                            loadNotifications();
+                        }
+                    }
+                });
+            }
+            
+            // Accept invite
+            function acceptInvite(id) {
+                $.ajax({
+                    url: `/notifications/${id}/accept`,
+                    type: 'GET',
+                    success: function(data) {
+                        if (data.success) {
+                            loadNotifications();
+                            if (data.redirect) {
+                                window.location.href = data.redirect;
+                            }
+                        }
+                    }
+                });
+            }
+            
+            // Reject invite
+            function rejectInvite(id) {
+                $.ajax({
+                    url: `/notifications/${id}/reject`,
+                    type: 'GET',
+                    success: function(data) {
+                        if (data.success) {
+                            loadNotifications();
+                        }
+                    }
+                });
+            }
+            
+            // Listen for new notifications
+            socket.on('new_notification', function(data) {
+                updateNotificationCount(data.count);
+            });
+            
+            // Initial load
+            loadNotifications();
+        });
+    </script>
+    {% endif %}
+    
+    {% block scripts %}{% endblock %}
+</body>
+</html>

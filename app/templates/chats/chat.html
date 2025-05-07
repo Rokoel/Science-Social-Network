@@ -1,0 +1,190 @@
+{% extends "base.html" %}
+
+{% block title %}{{ chat.name }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="chat-header-info">
+        <h1 class="page-title">{{ chat.name }}</h1>
+        <div class="chat-meta">
+            <span>Project: <a href="{{ url_for('projects.view', id=project.id) }}">{{ project.title }}</a></span>
+            <span>Members: {{ chat.members|length }}</span>
+        </div>
+    </div>
+    
+    <div class="chat-container">
+        <div class="chat-header">
+            <div class="d-flex justify-content-between align-items-center">
+                <h3>Chat Messages</h3>
+                {% if current_user in project.admins %}
+                    <div class="dropdown">
+                        <button class="btn btn-secondary dropdown-toggle" type="button" id="memberActions" data-bs-toggle="dropdown" aria-expanded="false">
+                            Invite Member
+                        </button>
+                        <ul class="dropdown-menu" aria-labelledby="memberActions">
+                            {% for member in project.members %}
+                                {% if member not in chat.members %}
+                                    <li><a class="dropdown-item" href="{{ url_for('chats.invite_user', id=chat.id, user_id=member.id) }}">{{ member.username }}</a></li>
+                                {% endif %}
+                            {% endfor %}
+                        </ul>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="chat-messages" id="message-container">
+            {% for message in messages.items %}
+                <div class="message {% if message.user_id == current_user.id %}message-outgoing{% else %}message-incoming{% endif %}">
+                    <div class="message-header">
+                        <strong>{{ message.author.username }}</strong>
+                    </div>
+                    <div class="message-body">
+                        {{ message.text }}
+                        {% if message.file %}
+                            <div class="message-attachment">
+                                <a href="{{ url_for('static', filename='uploads/' + message.file) }}" target="_blank">
+                                    {% if message.file.lower().endswith(('.jpg', '.jpeg', '.png', '.gif')) %}
+                                        <img src="{{ url_for('static', filename='uploads/' + message.file) }}" alt="Attachment" class="message-image">
+                                    {% else %}
+                                        <i class="fas fa-file"></i> Download Attachment
+                                    {% endif %}
+                                </a>
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="message-meta">
+                        {{ message.timestamp.strftime('%Y-%m-%d %H:%M') }}
+                    </div>
+                </div>
+            {% else %}
+                <div class="no-messages">
+                    <p>No messages yet. Be the first to start the conversation!</p>
+                </div>
+            {% endfor %}
+        </div>
+        
+        <div class="chat-form">
+            <form method="POST" enctype="multipart/form-data" id="message-form">
+                {{ form.hidden_tag() }}
+                <div class="form-row">
+                    <div class="form-group col-md-9">
+                        {{ form.text(class="form-control", placeholder="Type a message...", rows=2) }}
+                    </div>
+                    <div class="form-group col-md-2">
+                        {{ form.file(class="form-control") }}
+                    </div>
+                    <div class="form-group col-md-1">
+                        {{ form.submit(class="btn btn-primary") }}
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    {% if messages.pages > 1 %}
+        <div class="pagination">
+            {% if messages.has_prev %}
+                <a href="{{ url_for('chats.view', id=chat.id, page=messages.prev_num) }}" class="btn btn-secondary">&laquo; Previous</a>
+            {% endif %}
+            
+            <span class="current-page">Page {{ messages.page }} of {{ messages.pages }}</span>
+            
+            {% if messages.has_next %}
+                <a href="{{ url_for('chats.view', id=chat.id, page=messages.next_num) }}" class="btn btn-secondary">Next &raquo;</a>
+            {% endif %}
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+$(document).ready(function() {
+    // Scroll to bottom of messages on load
+    const messageContainer = document.getElementById('message-container');
+    messageContainer.scrollTop = messageContainer.scrollHeight;
+    
+    // Socket.IO connection
+    const socket = io();
+    const chatId = {{ chat.id }};
+    
+    // Join chat room
+    socket.emit('join_chat', { chat_id: chatId });
+    
+    // Listen for new messages
+    socket.on('new_message', function(message) {
+        const isOwnMessage = message.user_id === {{ current_user.id }};
+        const messageClass = isOwnMessage ? 'message-outgoing' : 'message-incoming';
+        
+        let fileContent = '';
+        if (message.file) {
+            const filePath = `/static/uploads/${message.file}`;
+            const isImage = ['jpg', 'jpeg', 'png', 'gif'].some(ext => message.file.toLowerCase().endsWith(ext));
+            
+            if (isImage) {
+                fileContent = `
+                    <div class="message-attachment">
+                        <a href="${filePath}" target="_blank">
+                            <img src="${filePath}" alt="Attachment" class="message-image">
+                        </a>
+                    </div>
+                `;
+            } else {
+                fileContent = `
+                    <div class="message-attachment">
+                        <a href="${filePath}" target="_blank">
+                            <i class="fas fa-file"></i> Download Attachment
+                        </a>
+                    </div>
+                `;
+            }
+        }
+        
+        const messageHtml = `
+            <div class="message ${messageClass}">
+                <div class="message-header">
+                    <strong>${message.username}</strong>
+                </div>
+                <div class="message-body">
+                    ${message.text}
+                    ${fileContent}
+                </div>
+                <div class="message-meta">
+                    ${new Date(message.timestamp).toLocaleString()}
+                </div>
+            </div>
+        `;
+        
+        // If this is the first message, remove the "no messages" notice
+        if ($('.no-messages').length) {
+            $('.no-messages').remove();
+        }
+        
+        // Append the new message
+        $('#message-container').prepend(messageHtml);
+        
+        // Scroll to the bottom
+        messageContainer.scrollTop = messageContainer.scrollHeight;
+    });
+    
+    // Handle form submission via Socket.IO
+    $('#message-form').submit(function(e) {
+        // The form will still do a normal submission, but we'll also send the message via socket
+        const text = $('#{{ form.text.id }}').val();
+        
+        if (text.trim() !== '') {
+            socket.emit('send_message', {
+                chat_id: chatId,
+                text: text
+            });
+        }
+    });
+    
+    // Clean up when leaving page
+    $(window).on('beforeunload', function() {
+        socket.emit('leave_chat', { chat_id: chatId });
+    });
+});
+</script>
+{% endblock %}

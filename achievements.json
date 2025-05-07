@@ -1,0 +1,32 @@
+[
+    {
+        "id": 1,
+        "name": "First Project",
+        "description": "Created your first project",
+        "icon": "project_icon.png"
+    },
+    {
+        "id": 2,
+        "name": "Team Player",
+        "description": "Joined 5 different projects",
+        "icon": "team_icon.png"
+    },
+    {
+        "id": 3,
+        "name": "Communicator",
+        "description": "Sent 100 messages in chats",
+        "icon": "chat_icon.png"
+    },
+    {
+        "id": 4,
+        "name": "Project Leader",
+        "description": "Created 3 projects",
+        "icon": "leader_icon.png"
+    },
+    {
+        "id": 5,
+        "name": "Early Adopter",
+        "description": "One of the first 100 users to register",
+        "icon": "early_icon.png"
+    }
+]

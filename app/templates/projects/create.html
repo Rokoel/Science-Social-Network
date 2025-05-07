@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+
+{% block title %}Create Project{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="page-title">Create New Project</h1>
+    
+    <div class="card">
+        <div class="card-header">Project Details</div>
+        <div class="card-body">
+            <form method="POST" action="">
+                {{ form.hidden_tag() }}
+                
+                <div class="form-group">
+                    {{ form.title.label }}
+                    {{ form.title(class="form-control") }}
+                    {% if form.title.errors %}
+                        <div class="errors">
+                            {% for error in form.title.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <div class="form-group">
+                    {{ form.description.label }}
+                    {{ form.description(class="form-control", rows=5) }}
+                    {% if form.description.errors %}
+                        <div class="errors">
+                            {% for error in form.description.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <div class="form-group">
+                    {{ form.goals.label }}
+                    {{ form.goals(class="form-control", rows=3) }}
+                    {% if form.goals.errors %}
+                        <div class="errors">
+                            {% for error in form.goals.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <div class="form-group">
+                    {{ form.deadline.label }}
+                    {{ form.deadline(class="form-control", type="datetime-local") }}
+                    <small class="text-muted">Format: YYYY-MM-DDThh:mm (e.g., 2025-12-31T23:59)</small>
+                    {% if form.deadline.errors %}
+                        <div class="errors">
+                            {% for error in form.deadline.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <div class="form-group">
+                    {{ form.project_type.label }}
+                    {{ form.project_type(class="form-control") }}
+                    {% if form.project_type.errors %}
+                        <div class="errors">
+                            {% for error in form.project_type.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <div class="form-check">
+                    {{ form.is_public(class="form-check-input") }}
+                    {{ form.is_public.label(class="form-check-label") }}
+                    <small class="text-muted">Public projects are visible to all users. Private projects are only visible to members.</small>
+                </div>
+                
+                <div class="form-group mt-4">
+                    {{ form.submit(class="btn btn-primary") }}
+                    <a href="{{ url_for('projects.feed') }}" class="btn btn-secondary">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
