@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="page-title">{{ user_to_display.username }}'s Profile</h1>
+
+    <div class="profile-container">
+        <div class="profile-sidebar">
+            <div class="profile-avatar-container">
+                <img src="{{ url_for('static', filename='uploads/' + user_to_display.avatar) }}" alt="Profile Avatar" class="profile-avatar">
+            </div>
+
+            <div class="profile-info">
+                <h2>{{ user_to_display.name }} {{ user_to_display.surname }}</h2>
+                <p><strong>Username:</strong> {{ user_to_display.username }}</p>
+                <p><strong>Email:</strong> {{ user_to_display.email }}</p> {# Consider privacy for email #}
+
+                {% if user_to_display.university %}
+                    <p><strong>University:</strong> {{ user_to_display.university }}</p>
+                {% endif %}
+
+                {% if user_to_display.degree %}
+                    <p><strong>Degree:</strong> {{ user_to_display.degree }}</p>
+                {% endif %}
+            </div>
+             <div class="achievements-section">
+                <h3>Achievements</h3>
+                {% if achievements %}
+                    <div class="achievement-list">
+                        {% for achievement in achievements %}
+                            <div class="achievement-item">
+                                {% if achievement.icon %}
+                                <img src="{{ url_for('static', filename='achievements_icons/' + achievement.icon) }}" alt="{{ achievement.name }}" class="achievement-icon">
+                                {% else %}
+                                <span class="achievement-icon-placeholder">🏆</span>
+                                {% endif %}
+                                <div class="achievement-name">{{ achievement.name }}</div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p>No achievements yet.</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="profile-main">
+            <div class="card mb-3">
+                <div class="card-header">Details</div>
+                <div class="card-body">
+                    {% if user_to_display.skills %}
+                        <p><strong>Skills:</strong><br>{{ user_to_display.skills | nl2br }}</p>
+                    {% endif %}
+                    {% if user_to_display.fields_interests %}
+                        <p><strong>Fields/Interests:</strong><br>{{ user_to_display.fields_interests | nl2br }}</p>
+                    {% endif %}
+                    {% if not user_to_display.skills and not user_to_display.fields_interests %}
+                        <p>No additional details provided.</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            {% if common_projects_admin %}
+            <div class="card">
+                <div class="card-header">Invite to Chat</div>
+                <div class="card-body">
+                    <p>You are an admin in the following projects where {{user_to_display.username}} is a member. Invite them to a chat:</p>
+                    {% for item in common_projects_admin %}
+                        <h5>Project: <a href="{{ url_for('projects.view', id=item.project.id) }}">{{ item.project.title }}</a></h5>
+                        {% if item.eligible_chats %}
+                            <ul class="list-unstyled">
+                            {% for chat in item.eligible_chats %}
+                                <li>
+                                    {{ chat.name }}
+                                    <a href="{{ url_for('chats.invite_user', id=chat.id, user_id=user_to_display.id) }}" class="btn btn-sm btn-outline-primary float-end">Invite</a>
+                                </li>
+                            {% endfor %}
+                            </ul>
+                        {% else %}
+                            <p><small>{{user_to_display.username}} is already in all eligible chats for this project, or no chats exist where you can invite them.</small></p>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+        </div>
+    </div>
+</div>
+{% endblock %}

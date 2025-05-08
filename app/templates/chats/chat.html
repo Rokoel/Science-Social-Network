@@ -34,20 +34,28 @@
         </div>
         
         <div class="chat-messages" id="message-container">
-            {% for message in messages.items %}
-                <div class="message {% if message.user_id == current_user.id %}message-outgoing{% else %}message-incoming{% endif %}">
+            {% for message in messages.items %} {# messages.items are Message objects #}
+                <div class="message {% if message.user_id == current_user.id %}message-outgoing{% else %}message-incoming{% endif %}" id="message-{{ message.id }}">
                     <div class="message-header">
-                        <strong>{{ message.author.username }}</strong>
+                        {# --- ADD AVATAR FOR SERVER-RENDERED MESSAGES --- #}
+                        {% if message.author %} {# Check if author exists #}
+                            <img src="{{ url_for('static', filename='uploads/' + message.author.avatar) }}" class="chat-avatar-small" alt="{{ message.author.username }}">
+                            <strong><a href="{{ url_for('users.view_profile', user_id=message.author.id) }}">{{ message.author.username }}</a></strong>
+                        {% else %}
+                            <strong>Unknown User</strong>
+                        {% endif %}
+                        {# --- END AVATAR ADDITION --- #}
                     </div>
                     <div class="message-body">
-                        {{ message.text }}
+                        {% if message.text %}<p>{{ message.text | nl2br }}</p>{% endif %} {# nl2br for server-rendered text #}
                         {% if message.file %}
                             <div class="message-attachment">
                                 <a href="{{ url_for('static', filename='uploads/' + message.file) }}" target="_blank">
-                                    {% if message.file.lower().endswith(('.jpg', '.jpeg', '.png', '.gif')) %}
+                                    {% set filename_lower = message.file.lower() %}
+                                    {% if filename_lower.endswith(('.jpg', '.jpeg', '.png', '.gif')) %}
                                         <img src="{{ url_for('static', filename='uploads/' + message.file) }}" alt="Attachment" class="message-image">
                                     {% else %}
-                                        <i class="fas fa-file"></i> Download Attachment
+                                        <i class="fas fa-file"></i> Download Attachment: {{ message.file.split('_')[-1] }} {# Show cleaner filename #}
                                     {% endif %}
                                 </a>
                             </div>
@@ -68,16 +76,17 @@
             <form method="POST" enctype="multipart/form-data" id="message-form">
                 {{ form.hidden_tag() }}
                 <div class="form-row">
-                    <div class="form-group col-md-9">
-                        {{ form.text(class="form-control", placeholder="Type a message...", rows=2) }}
+                    <div class="form-group col-md-8">
+                        {{ form.text(class="form-control", placeholder="Type a message...", rows=2) }} {# Let WTForms handle the ID #}
                     </div>
-                    <div class="form-group col-md-2">
-                        {{ form.file(class="form-control") }}
+                    <div class="form-group col-md-3">
+                        {{ form.file(class="form-control", id="message_file_input") }} {# Keep custom ID for file if preferred, or use {{ form.file.id }} #}
                     </div>
                     <div class="form-group col-md-1">
-                        {{ form.submit(class="btn btn-primary") }}
+                        {{ form.submit(class="btn btn-primary", id="send_message_btn") }}
                     </div>
                 </div>
+                 <div id="form-errors" class="errors" style="display:none;"></div>
             </form>
         </div>
     </div>
@@ -100,91 +109,135 @@
 
 {% block scripts %}
 <script>
-$(document).ready(function() {
-    // Scroll to bottom of messages on load
-    const messageContainer = document.getElementById('message-container');
-    messageContainer.scrollTop = messageContainer.scrollHeight;
-    
-    // Socket.IO connection
-    const socket = io();
-    const chatId = {{ chat.id }};
-    
-    // Join chat room
-    socket.emit('join_chat', { chat_id: chatId });
-    
-    // Listen for new messages
-    socket.on('new_message', function(message) {
-        const isOwnMessage = message.user_id === {{ current_user.id }};
-        const messageClass = isOwnMessage ? 'message-outgoing' : 'message-incoming';
-        
-        let fileContent = '';
-        if (message.file) {
-            const filePath = `/static/uploads/${message.file}`;
-            const isImage = ['jpg', 'jpeg', 'png', 'gif'].some(ext => message.file.toLowerCase().endsWith(ext));
-            
-            if (isImage) {
-                fileContent = `
-                    <div class="message-attachment">
-                        <a href="${filePath}" target="_blank">
-                            <img src="${filePath}" alt="Attachment" class="message-image">
-                        </a>
-                    </div>
-                `;
-            } else {
-                fileContent = `
-                    <div class="message-attachment">
-                        <a href="${filePath}" target="_blank">
-                            <i class="fas fa-file"></i> Download Attachment
-                        </a>
-                    </div>
-                `;
+    $(document).ready(function() {
+        const messageContainer = document.getElementById('message-container');
+        if (messageContainer) {
+            // Scroll to bottom only if there are messages, and not if "no messages" is shown
+            if (!$('.no-messages').length) {
+                messageContainer.scrollTop = messageContainer.scrollHeight;
             }
         }
         
-        const messageHtml = `
-            <div class="message ${messageClass}">
-                <div class="message-header">
-                    <strong>${message.username}</strong>
+        const socket = io();
+        const chatId = {{ chat.id }};
+        const currentUserId = {{ current_user.id }};
+
+        socket.emit('join_chat', { chat_id: chatId });
+
+        socket.on('new_message', function(message) {
+            if (message.chat_id !== chatId) return; 
+
+            const isOwnMessage = message.user_id === currentUserId;
+            const messageClass = isOwnMessage ? 'message-outgoing' : 'message-incoming';
+            
+            let fileContent = '';
+            if (message.file) {
+                const filePath = `/static/uploads/${message.file}`; 
+                const isImage = ['jpg', 'jpeg', 'png', 'gif'].some(ext => message.file.toLowerCase().endsWith('.' + ext));
+                
+                if (isImage) {
+                    fileContent = `
+                        <div class="message-attachment">
+                            <a href="${filePath}" target="_blank">
+                                <img src="${filePath}" alt="Attachment" class="message-image">
+                            </a>
+                        </div>
+                    `;
+                } else {
+                    fileContent = `
+                        <div class="message-attachment">
+                            <a href="${filePath}" target="_blank">
+                                <i class="fas fa-file"></i> Download Attachment: ${message.file.split('_').slice(1).join('_') || message.file}
+                            </a>
+                        </div>
+                    `;
+                }
+            }
+            
+            // Ensure message.text is handled correctly if it's null or undefined
+            const messageTextHtml = message.text ? `<p>${message.text.replace(/\n/g, '<br>')}</p>` : '';
+
+            const messageHtml = `
+                <div class="message ${messageClass}" id="message-${message.id}">
+                    <div class="message-header">
+                        <img src="/static/uploads/${message.user_avatar}" class="chat-avatar-small" alt="${message.username}">
+                        <strong><a href="/users/view/${message.user_id}">${message.username}</a></strong>
+                    </div>
+                    <div class="message-body">
+                        ${messageTextHtml}
+                        ${fileContent}
+                    </div>
+                    <div class="message-meta">
+                        ${new Date(message.timestamp).toLocaleString()}
+                    </div>
                 </div>
-                <div class="message-body">
-                    ${message.text}
-                    ${fileContent}
-                </div>
-                <div class="message-meta">
-                    ${new Date(message.timestamp).toLocaleString()}
-                </div>
-            </div>
-        `;
-        
-        // If this is the first message, remove the "no messages" notice
-        if ($('.no-messages').length) {
-            $('.no-messages').remove();
-        }
-        
-        // Append the new message
-        $('#message-container').prepend(messageHtml);
-        
-        // Scroll to the bottom
-        messageContainer.scrollTop = messageContainer.scrollHeight;
-    });
+            `;
+            
+            if ($('.no-messages').length) {
+                $('.no-messages').remove();
+            }
+            
+            $('#message-container').prepend(messageHtml); 
+            if (messageContainer) {
+                messageContainer.scrollTop = messageContainer.scrollHeight;
+            }
+        });
     
-    // Handle form submission via Socket.IO
-    $('#message-form').submit(function(e) {
-        // The form will still do a normal submission, but we'll also send the message via socket
-        const text = $('#{{ form.text.id }}').val();
-        
-        if (text.trim() !== '') {
-            socket.emit('send_message', {
+        socket.on('error', function(data) {
+            console.error('Socket Error:', data.message);
+            $('#form-errors').text(data.message).show();
+        });
+    
+        $('#message-form').submit(function(e) {
+            e.preventDefault(); 
+            $('#form-errors').hide().text('');
+
+            const textInput = $('#{{ form.text.id }}'); // Use WTForms generated ID for text input
+            console.log(textInput);
+            const fileInput = $('#message_file_input')[0]; 
+            
+            console.log(textInput.val());
+            const text = textInput.val() ? textInput.val().trim() : ""; // Check if val() is not undefined/null before trim
+            const file = fileInput.files[0];
+
+            if (!text && !file) {
+                $('#form-errors').text('Please enter a message or select a file.').show();
+                return;
+            }
+            if (file && file.size > 10 * 1024 * 1024) { 
+                $('#form-errors').text('File size cannot exceed 10MB.').show();
+                return;
+            }
+
+            const sendMessageData = {
                 chat_id: chatId,
-                text: text
-            });
-        }
+                text: text,
+            };
+
+            if (file) {
+                console.log('sending with file');
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    sendMessageData.file_data = event.target.result; 
+                    sendMessageData.file_name = file.name;
+                    socket.emit('send_message', sendMessageData);
+                };
+                reader.onerror = function() {
+                    $('#form-errors').text('Error reading file.').show();
+                };
+                reader.readAsArrayBuffer(file); 
+            } else {
+                console.log('sending without file', sendMessageData);
+                socket.emit('send_message', sendMessageData);
+            }
+            
+            textInput.val('');
+            fileInput.value = null; 
+        });
+        
+        $(window).on('beforeunload', function() {
+            socket.emit('leave_chat', { chat_id: chatId });
+        });
     });
-    
-    // Clean up when leaving page
-    $(window).on('beforeunload', function() {
-        socket.emit('leave_chat', { chat_id: chatId });
-    });
-});
-</script>
+    </script>
 {% endblock %}

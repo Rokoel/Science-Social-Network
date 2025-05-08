@@ -9,20 +9,20 @@
     <div class="profile-container">
         <div class="profile-sidebar">
             <div class="profile-avatar-container">
-                <img src="{{ url_for('static', filename='uploads/' + current_user.avatar) }}" alt="Profile Avatar" class="profile-avatar">
+                <img src="{{ url_for('static', filename='uploads/' + user_to_display.avatar) }}" alt="Profile Avatar" class="profile-avatar">
             </div>
             
             <div class="profile-info">
-                <h2>{{ current_user.name }} {{ current_user.surname }}</h2>
-                <p><strong>Username:</strong> {{ current_user.username }}</p>
-                <p><strong>Email:</strong> {{ current_user.email }}</p>
+                <h2>{{ user_to_display.name }} {{ user_to_display.surname }}</h2>
+                <p><strong>Username:</strong> {{ user_to_display.username }}</p>
+                <p><strong>Email:</strong> {{ user_to_display.email }}</p>
                 
-                {% if current_user.university %}
-                    <p><strong>University:</strong> {{ current_user.university }}</p>
+                {% if user_to_display.university %}
+                    <p><strong>University:</strong> {{ user_to_display.university }}</p>
                 {% endif %}
                 
-                {% if current_user.degree %}
-                    <p><strong>Degree:</strong> {{ current_user.degree }}</p>
+                {% if user_to_display.degree %}
+                    <p><strong>Degree:</strong> {{ user_to_display.degree }}</p>
                 {% endif %}
             </div>
             
@@ -32,7 +32,11 @@
                     <div class="achievement-list">
                         {% for achievement in achievements %}
                             <div class="achievement-item">
-                                <img src="{{ url_for('static', filename='uploads/' + achievement.icon) }}" alt="{{ achievement.name }}" class="achievement-icon">
+                                {% if achievement.icon %}
+                                <img src="{{ url_for('static', filename='achievements_icons/' + achievement.icon) }}" alt="{{ achievement.name }}" class="achievement-icon">
+                                {% else %}
+                                <span class="achievement-icon-placeholder">🏆</span> {# Fallback if no icon #}
+                                {% endif %}
                                 <div class="achievement-name">{{ achievement.name }}</div>
                             </div>
                         {% endfor %}

@@ -5,6 +5,9 @@ from app import socketio, db
 from app.models import Message, Chat, User, Notification
 import json
 from datetime import datetime
+import os
+import uuid
+from werkzeug.utils import secure_filename
 
 @socketio.on('connect')
 def handle_connect():
@@ -20,6 +23,7 @@ def handle_disconnect():
 
 @socketio.on('join_chat')
 def handle_join_chat(data):
+    current_app.logger.info(f"join_chat: {data}")
     chat_id = data.get('chat_id')
     
     if not current_user.is_authenticated or not chat_id:
@@ -46,44 +50,72 @@ def handle_leave_chat(data):
 
 @socketio.on('send_message')
 def handle_send_message(data):
+    current_app.logger.info(f"send_message: {data}")
     if not current_user.is_authenticated:
+        emit('error', {'message': 'Authentication required'})
         return
-    
+
     chat_id = data.get('chat_id')
-    text = data.get('text')
-    file_path = data.get('file_path', None)
-    
-    if not chat_id or not text:
-        emit('error', {'message': 'Missing required fields'})
+    text = data.get('text', '').strip()
+    file_data = data.get('file_data') # Expecting { 'name': 'filename.ext', 'content': ArrayBuffer/Blob }
+    file_name = data.get('file_name')
+
+    if not chat_id:
+        current_app.logger.warning(f"send_message: Chat ID missing. User: {current_user.id}")
+        emit('error', {'message': 'Chat ID missing'})
         return
-    
+
+    if not text and not file_data:
+        current_app.logger.warning(f"send_message: Empty message (no text/file). User: {current_user.id}, Chat: {chat_id}")
+        emit('error', {'message': 'Message text or file is required'})
+        return
+
     chat = Chat.query.get(chat_id)
-    
     if not chat or current_user not in chat.members:
+        current_app.logger.warning(f"send_message: Auth error or chat not found. User: {current_user.id}, Chat: {chat_id}")
         emit('error', {'message': 'Not authorized to send messages to this chat'})
         return
+
+    saved_file_path = None
+    if file_data and file_name:
+        try:
+            filename = secure_filename(f"{uuid.uuid4()}_{file_name}")
+            filepath = os.path.join(current_app.config['UPLOAD_FOLDER'], filename)
+            
+            # file_data is expected to be bytes (e.g., from ArrayBuffer on client)
+            with open(filepath, 'wb') as f:
+                f.write(file_data)
+            saved_file_path = filename
+        except Exception as e:
+            current_app.logger.error(f"File upload error: {e}")
+            emit('error', {'message': 'File upload failed'})
+            # Optionally, do not proceed with message saving if file upload is critical and failed
+            # return 
     
-    # Create and save message
+    current_app.logger.info(f"User {current_user.username} sent message to chat {chat_id}: {text}")
     message = Message(
-        text=text,
+        text=text if text else None, # Store None if text is empty
         user_id=current_user.id,
-        chat_id=chat_id,
-        file=file_path,
-        timestamp=datetime.utcnow()
+        chat_id=chat.id,
+        file=saved_file_path,
+        timestamp=datetime.now()
     )
     db.session.add(message)
     db.session.commit()
-    
-    # Broadcast to all members in the chat room
+
     emit('new_message', {
         'id': message.id,
         'text': message.text,
         'timestamp': message.timestamp.isoformat(),
         'user_id': message.user_id,
-        'username': current_user.username,
-        'file': message.file,
-        'avatar': current_user.avatar
+        'username': message.author.username, # Use message.author for consistency
+        'user_avatar': message.author.avatar,
+        'file': message.file, # This will be the server path
+        'chat_id': chat.id
     }, room=f'chat_{chat_id}')
+    if not current_user.is_authenticated:
+        emit('error', {'message': 'Authentication required'})
+        return
 
 @socketio.on('notification')
 def handle_notification(data):

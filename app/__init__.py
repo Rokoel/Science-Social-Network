@@ -9,6 +9,7 @@ from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 import redis
 from datetime import datetime
+import logging
 
 # Initialize extensions
 db = SQLAlchemy()
@@ -22,6 +23,18 @@ limiter = Limiter(key_func=get_remote_address,
 def create_app(config_class='config.Config'):
     app = Flask(__name__)
     app.config.from_object(config_class)
+
+    if app.debug:
+        # In debug mode, set level to DEBUG for more verbosity
+        # This will show INFO, WARNING, ERROR, CRITICAL, and DEBUG messages
+        logging.basicConfig(level=logging.DEBUG)
+        app.logger.setLevel(logging.DEBUG)
+    else:
+        # In production, you might want INFO or WARNING
+        logging.basicConfig(level=logging.INFO)
+        app.logger.setLevel(logging.INFO)
+    
+    app.logger.info("Flask App Logger initialized.")
     
     # Initialize Redis client
     global redis_client
@@ -46,6 +59,11 @@ def create_app(config_class='config.Config'):
     # Ensure upload directory exists
     os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
+    os.makedirs(os.path.join(app.static_folder, 'achievements_icons'), exist_ok=True)
+
+    from app.utils import nl2br
+    app.jinja_env.filters['nl2br'] = nl2br
+
     @app.context_processor
     def inject_now():
         return {'now': datetime.now()}
@@ -64,7 +82,9 @@ def create_app(config_class='config.Config'):
     app.register_blueprint(users_bp)
     app.register_blueprint(chats_bp)
     app.register_blueprint(notifications_bp)
-    
+
+    from . import sockets
+
     # Create database tables
     with app.app_context():
         db.create_all()

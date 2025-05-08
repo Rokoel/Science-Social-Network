@@ -3,6 +3,8 @@ import json
 from app.models import User
 from app import db
 import os
+from markupsafe import Markup, escape
+from jinja2 import pass_eval_context
 
 def load_achievements():
     """Load all achievements from the JSON file"""
@@ -67,3 +69,18 @@ def check_achievement_conditions(user_id):
     # This is a stub function to be expanded with actual achievement logic
     # For example, counting projects, messages, etc.
     pass
+
+@pass_eval_context
+def nl2br(eval_ctx, value):
+    """Converts newlines in a string to HTML line breaks."""
+    br = "<br>\n"
+    
+    # Ensure the value is a string and escape it to prevent XSS
+    value = str(escape(value))
+    
+    # Replace \r\n, \r, and \n with <br>
+    result = value.replace('\r\n', br).replace('\r', br).replace('\n', br)
+    
+    if eval_ctx.autoescape:
+        return Markup(result)
+    return result

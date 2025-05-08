@@ -352,6 +352,33 @@
     background-color: var(--primary-color);
     color: white;
   }
+
+  .message-header img {
+    max-width: 3em;
+    max-height: 3em;
+  }
+
+  .message-attachment img {
+    max-width: 60vw;
+    max-height: 60vw;
+  }
+
+  li img {
+    max-width: 3em;
+    max-height: 3em;
+  }
+  li {
+    list-style: none;
+    margin-bottom: 1rem;
+  }
+  li > div {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+  }
+  li > div * {
+    margin-right: 0.5em;
+  }
   
   .chat-messages {
     flex: 1;

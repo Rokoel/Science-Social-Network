@@ -105,7 +105,7 @@
             // Render notifications in dropdown
             function renderNotifications(notifications) {
                 if (notifications.length === 0) {
-                    $('#notification-list').html('<p>No notifications</p>');
+                    $('#notification-list').html('<p>No new notifications.</p>'); // Updated text
                     return;
                 }
                 
@@ -121,9 +121,14 @@
                         `;
                     }
                     
+                    let senderLink = notification.sender ? notification.sender.username : 'System';
+                    if (notification.sender) {
+                        senderLink = `<a href="/users/view/${notification.sender.id}" onclick="event.stopPropagation();">${notification.sender.username}</a>`;
+                    }
+
                     html += `
-                        <div class="notification-item" data-id="${notification.id}">
-                            <p>${notification.text}</p>
+                        <div class="notification-item" data-id="${notification.id}" data-project-id="${notification.project_id || ''}" data-chat-id="${notification.chat_id || ''}">
+                            <p>${notification.text} (from: ${senderLink})</p>
                             <small>${new Date(notification.timestamp).toLocaleString()}</small>
                             ${actions}
                             <button class="dismiss-btn" data-id="${notification.id}">Dismiss</button>
@@ -177,29 +182,78 @@
             
             // Accept invite
             function acceptInvite(id) {
+                console.log("[CLIENT] Attempting to ACCEPT invite ID:", id);
                 $.ajax({
                     url: `/notifications/${id}/accept`,
                     type: 'GET',
-                    success: function(data) {
-                        if (data.success) {
-                            loadNotifications();
+                    dataType: 'json', // Explicitly expect JSON
+                    success: function(data, textStatus, jqXHR) {
+                        console.log("[CLIENT] ACCEPT AJAX success. Raw data:", data);
+                        console.log("[CLIENT] data.success type:", typeof data.success, "value:", data.success);
+                        console.log("[CLIENT] data.message type:", typeof data.message, "value:", data.message);
+                        console.log("[CLIENT] data.redirect type:", typeof data.redirect, "value:", data.redirect);
+
+                        if (data && data.success === true) { // Be explicit: data exists AND data.success is true
+                            console.log("[CLIENT] ACCEPT marked as successful by server.");
+                            loadNotifications(); 
                             if (data.redirect) {
-                                window.location.href = data.redirect;
+                                console.log("[CLIENT] Redirecting to:", data.redirect);
+                                window.location.href = data.redirect; 
                             }
+                        } else {
+                            // This block is likely being hit
+                            console.error("[CLIENT] ACCEPT failed (server data.success was not true). Message from server:", data ? data.message : "No message field");
+                            alert( (data && data.message) ? data.message : 'Failed to accept invitation. Server response did not indicate success.');
                         }
+                    },
+                    error: function(jqXHR, textStatus, errorThrown) {
+                        console.error("[CLIENT] ACCEPT AJAX error. Status:", textStatus, "Error:", errorThrown, "Response Text:", jqXHR.responseText);
+                        let errorMsg = 'Error processing request: ' + textStatus + " - " + errorThrown;
+                        try {
+                            const errorResponse = JSON.parse(jqXHR.responseText);
+                            if (errorResponse && errorResponse.message) {
+                                errorMsg = 'Error: ' + errorResponse.message;
+                            }
+                        } catch (e) {
+                            // JSON.parse failed, use original errorMsg
+                        }
+                        alert(errorMsg);
                     }
                 });
             }
             
             // Reject invite
             function rejectInvite(id) {
+                console.log("[CLIENT] Attempting to REJECT invite ID:", id);
                 $.ajax({
                     url: `/notifications/${id}/reject`,
                     type: 'GET',
-                    success: function(data) {
-                        if (data.success) {
-                            loadNotifications();
+                    dataType: 'json', // Explicitly expect JSON
+                    success: function(data, textStatus, jqXHR) {
+                        console.log("[CLIENT] REJECT AJAX success. Raw data:", data);
+                        console.log("[CLIENT] data.success type:", typeof data.success, "value:", data.success);
+                        console.log("[CLIENT] data.message type:", typeof data.message, "value:", data.message);
+
+                        if (data && data.success === true) { // Be explicit
+                            console.log("[CLIENT] REJECT marked as successful by server.");
+                            loadNotifications(); 
+                        } else {
+                            console.error("[CLIENT] REJECT failed (server data.success was not true). Message from server:", data ? data.message : "No message field");
+                            alert( (data && data.message) ? data.message : 'Failed to reject invitation. Server response did not indicate success.');
                         }
+                    },
+                    error: function(jqXHR, textStatus, errorThrown) {
+                        console.error("[CLIENT] REJECT AJAX error. Status:", textStatus, "Error:", errorThrown, "Response Text:", jqXHR.responseText);
+                        let errorMsg = 'Error processing request: ' + textStatus + " - " + errorThrown;
+                        try {
+                            const errorResponse = JSON.parse(jqXHR.responseText);
+                            if (errorResponse && errorResponse.message) {
+                                errorMsg = 'Error: ' + errorResponse.message;
+                            }
+                        } catch (e) {
+                            // JSON.parse failed
+                        }
+                        alert(errorMsg);
                     }
                 });
             }

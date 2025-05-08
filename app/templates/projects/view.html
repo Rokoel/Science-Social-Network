@@ -8,101 +8,133 @@
         <div class="card-header">
             <h1>{{ project.title }}</h1>
             <div class="project-meta">
-                <span><i class="fas fa-user"></i> Created by: {{ project.creator.username }}</span>
+                <span><i class="fas fa-user"></i> Created by: <a href="{{ url_for('users.view_profile', user_id=project.creator.id) }}">{{ project.creator.username }}</a></span>
                 <span><i class="fas fa-calendar"></i> Created on: {{ project.created_at.strftime('%Y-%m-%d') }}</span>
-                <span><i class="fas fa-clock"></i> Deadline: {{ project.deadline.strftime('%Y-%m-%d') }}</span>
+                <span><i class="fas fa-clock"></i> Deadline: {{ project.deadline.strftime('%Y-%m-%d') if project.deadline else 'N/A' }}</span>
                 <span><i class="fas fa-tag"></i> Type: {{ project.project_type }}</span>
                 <span><i class="fas fa-lock-open"></i> Visibility: {{ "Public" if project.is_public else "Private" }}</span>
             </div>
         </div>
         <div class="card-body">
             <h3>Description</h3>
-            <p>{{ project.description }}</p>
+            <p>{{ project.description | nl2br }}</p>
             
             <h3>Goals</h3>
-            <p>{{ project.goals }}</p>
+            <p>{{ project.goals | nl2br }}</p>
             
             <div class="project-actions mt-4">
-                {% if is_member %}
+                {% if current_user in project.members %}
                     <a href="{{ url_for('projects.leave', id=project.id) }}" class="btn btn-danger" onclick="return confirm('Are you sure you want to leave this project?')">Leave Project</a>
-                {% else %}
-                    <a href="{{ url_for('projects.join', id=project.id) }}" class="btn btn-success">Join Project</a>
+                {% elif project.is_public %}
+                    {# Check if user has a pending application #}
+                    {% set pending_application = namespace(found=false) %}
+                    {% for notif in current_user.sent_notifications.filter_by(project_id=project.id, notification_type='invite', invite_type='project_application', status='not_answered').all() %}
+                        {% if notif.user_id == project.creator_id %} {# Notification is for the creator #}
+                             {% set pending_application.found = true %}
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if pending_application.found %}
+                        <button class="btn btn-secondary" disabled>Application Pending</button>
+                    {% else %}
+                        <a href="{{ url_for('projects.apply', id=project.id) }}" class="btn btn-success">Apply to Project</a>
+                    {% endif %}
+                {% elif not project.is_public and not current_user in project.members %}
+                     <button class="btn btn-secondary" disabled>Private Project</button>
                 {% endif %}
                 
-                {% if is_admin %}
-                    <a href="{{ url_for('projects.edit', id=project.id) }}" class="btn btn-primary">Edit Project</a>
+                {% if current_user in project.admins %}
+                    <a href="{{ url_for('projects.edit', id=project.id) }}" class="btn btn-info">Edit Project</a>
                 {% endif %}
             </div>
         </div>
     </div>
     
-    {% if is_member %}
-        <div class="card mb-4">
-            <div class="card-header">
-                <h2>Project Chats</h2>
-                {% if is_admin %}
-                    <a href="{{ url_for('chats.create', project_id=project.id) }}" class="btn btn-primary btn-sm">Create New Chat</a>
-                {% endif %}
-            </div>
-            <div class="card-body">
-                {% if project.chats.count() > 0 %}
-                    <ul class="list-group">
-                        {% for chat in project.chats %}
-                            <li class="list-group-item">
-                                <a href="{{ url_for('chats.view', id=chat.id) }}">{{ chat.name }}</a>
-                                <small class="text-muted">Created on: {{ chat.created_at.strftime('%Y-%m-%d') }}</small>
-                            </li>
-                        {% endfor %}
-                    </ul>
-                {% else %}
-                    <p>No chats available for this project yet.</p>
-                {% endif %}
-            </div>
+    {% if current_user in project.members %}
+    <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h2>Project Chats</h2>
+            {% if current_user in project.admins %}
+                <a href="{{ url_for('chats.create', project_id=project.id) }}" class="btn btn-primary btn-sm">Create New Chat</a>
+            {% endif %}
         </div>
-        
-        <div class="card mb-4">
-            <div class="card-header">
-                <h2>Team Members</h2>
+        <div class="card-body">
+            {% if sorted_chats %} {# Check if sorted_chats is not empty #}
+                <ul class="list-group">
+                    {% for chat in sorted_chats %} {# Iterate over the pre-sorted list #}
+                        <li class="list-group-item">
+                            <a href="{{ url_for('chats.view', id=chat.id) }}">{{ chat.name }}</a>
+                            <small class="text-muted"> (Members: {{ chat.members|length }}) Created on: {{ chat.created_at.strftime('%Y-%m-%d') }}</small>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p>No chats available for this project yet, or you are not a member of any.</p>
+            {% endif %}
+        </div>
+    </div>
+    
+    <div class="card mb-4">
+        <div class="card-header">
+            <h2>Team Members ({{ project.members|length }})</h2>
+        </div>
+        <div class="card-body">
+            <div class="member-section">
+                <h4>Admins ({{ project.admins|length }})</h4>
+                <ul class="list-group">
+                    {% for admin in project.admins %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <img src="{{ url_for('static', filename='uploads/' + admin.avatar) }}" class="chat-avatar-small" alt="{{ admin.username }}">
+                                <a href="{{ url_for('users.view_profile', user_id=admin.id) }}">{{ admin.username }}</a>
+                                {% if admin.id == project.creator_id %}<span class="badge bg-info text-dark ms-1">Creator</span>{% endif %}
+                                {% if admin.id == current_user.id %}<span class="badge bg-primary ms-1">You</span>{% endif %}
+                            </div>
+                            {% if current_user in project.admins and admin != current_user and admin != project.creator %}
+                                <div class="member-actions">
+                                    <a href="{{ url_for('projects.manage_member', project_id=project.id, user_id=admin.id, action='remove_admin') }}" class="btn btn-sm btn-warning" onclick="return confirm('Are you sure you want to remove admin rights from {{ admin.username }}?')">Remove Admin</a>
+                                </div>
+                            {% elif current_user in project.admins and admin == project.creator and project.creator != current_user %}
+                                <small class="text-muted">Creator (Cannot be demoted by others)</small>
+                            {% endif %}
+                        </li>
+                    {% endfor %}
+                </ul>
             </div>
-            <div class="card-body">
-                <div class="member-section">
-                    <h4>Admins</h4>
-                    <ul class="list-group">
-                        {% for admin in project.admins %}
-                            <li class="list-group-item">
-                                {{ admin.username }}
-                                {% if admin.id == current_user.id %}
-                                    <span class="badge badge-primary">You</span>
+            
+            <div class="member-section mt-4">
+                <h4>Members</h4>
+                <ul class="list-group">
+                    {% for member in project.members %}
+                        {% if member not in project.admins %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <img src="{{ url_for('static', filename='uploads/' + member.avatar) }}" class="chat-avatar-small" alt="{{ member.username }}">
+                                    <a href="{{ url_for('users.view_profile', user_id=member.id) }}">{{ member.username }}</a>
+                                    {% if member.id == current_user.id %}<span class="badge bg-primary ms-1">You</span>{% endif %}
+                                </div>
+                                {% if current_user in project.admins and member.id != current_user.id %}
+                                    <div class="member-actions">
+                                        <a href="{{ url_for('projects.manage_member', project_id=project.id, user_id=member.id, action='make_admin') }}" class="btn btn-sm btn-success">Make Admin</a>
+                                        <a href="{{ url_for('projects.manage_member', project_id=project.id, user_id=member.id, action='remove_member') }}" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to remove {{ member.username }} from the project?')">Remove Member</a>
+                                    </div>
                                 {% endif %}
                             </li>
-                        {% endfor %}
-                    </ul>
-                </div>
-                
-                <div class="member-section mt-4">
-                    <h4>Members</h4>
-                    <ul class="list-group">
-                        {% for member in project.members %}
-                            {% if member not in project.admins %}
-                                <li class="list-group-item">
-                                    {{ member.username }}
-                                    {% if member.id == current_user.id %}
-                                        <span class="badge badge-primary">You</span>
-                                    {% endif %}
-                                    
-                                    {% if is_admin and member.id != current_user.id %}
-                                        <div class="member-actions">
-                                            <button class="btn btn-sm btn-primary">Make Admin</button>
-                                            <button class="btn btn-sm btn-danger">Remove</button>
-                                        </div>
-                                    {% endif %}
-                                </li>
-                            {% endif %}
-                        {% endfor %}
-                    </ul>
-                </div>
+                        {% endif %}
+                    {% endfor %}
+                        {% if project.members|length == project.admins|length and project.members|length > 0 %}
+                        <li class="list-group-item text-muted">All members are admins.</li>
+                    {% elif project.members|length == 0 %}
+                            <li class="list-group-item text-muted">No members yet.</li>
+                    {% endif %}
+                </ul>
             </div>
         </div>
+    </div>
+    {% elif not project.is_public %}
+    <div class="alert alert-warning">This is a private project. You need to be invited to see more details or members.</div>
+    {% else %}
+    <div class="alert alert-info">Apply to this project to see chats and member details.</div>
     {% endif %}
 </div>
 {% endblock %}

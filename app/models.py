@@ -36,7 +36,7 @@ class User(UserMixin, db.Model):
     university = db.Column(db.String(120))
     degree = db.Column(db.String(64))
     fields_interests = db.Column(db.Text)
-    avatar = db.Column(db.String(120), default='default.jpg')
+    avatar = db.Column(db.String(120), default='default-avatar.svg')
     achievements = db.Column(db.Text, default='[]')  # Store as JSON string of achievement IDs
     
     # Relationships
@@ -126,7 +126,7 @@ class Notification(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))  # Recipient
     sender_id = db.Column(db.Integer, db.ForeignKey('user.id'))
-    timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
+    timestamp = db.Column(db.DateTime, index=True, default=datetime.now())
     notification_type = db.Column(db.String(20))  # "info" or "invite"
     info_type = db.Column(db.String(50), nullable=True)
     invite_type = db.Column(db.String(50), nullable=True)
@@ -134,6 +134,7 @@ class Notification(db.Model):
     status = db.Column(db.String(20), default='not_answered')  # accepted, rejected, not_answered
     dismissed = db.Column(db.Boolean, default=False)
     chat_id = db.Column(db.Integer, db.ForeignKey('chat.id'), nullable=True)
+    project_id = db.Column(db.Integer, db.ForeignKey('project.id'), nullable=True)
     
     def __repr__(self):
         return f'<Notification {self.id}>'

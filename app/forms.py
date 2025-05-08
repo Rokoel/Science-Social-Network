@@ -1,7 +1,7 @@
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileField, FileAllowed
 from wtforms import StringField, PasswordField, TextAreaField, SubmitField, BooleanField, SelectField, DateTimeField
-from wtforms.validators import DataRequired, Email, EqualTo, Length, ValidationError
+from wtforms.validators import DataRequired, Email, EqualTo, Length, ValidationError, Optional
 from app.models import User, Project
 
 class LoginForm(FlaskForm):
@@ -65,7 +65,17 @@ class ProjectForm(FlaskForm):
     description = TextAreaField('Description', validators=[DataRequired()])
     goals = TextAreaField('Goals', validators=[DataRequired()])
     deadline = DateTimeField('Deadline', format='%Y-%m-%dT%H:%M', validators=[DataRequired()])
-    project_type = StringField('Project Type', validators=[DataRequired()])
+    project_type_choices = [
+        ("Project", "Project"),
+        ("Experiment", "Experiment"),
+        ("Study", "Study"),
+        ("Other", "Other"),
+    ]
+    project_type = SelectField(
+        "Project Type",
+        choices=project_type_choices,
+        validators=[DataRequired()],
+    )
     is_public = BooleanField('Public Project', default=True)
     submit = SubmitField('Create Project')
 
@@ -74,7 +84,17 @@ class EditProjectForm(FlaskForm):
     description = TextAreaField('Description', validators=[DataRequired()])
     goals = TextAreaField('Goals', validators=[DataRequired()])
     deadline = DateTimeField('Deadline', format='%Y-%m-%dT%H:%M', validators=[DataRequired()])
-    project_type = StringField('Project Type', validators=[DataRequired()])
+    project_type_choices = [
+        ("Project", "Project"),
+        ("Experiment", "Experiment"),
+        ("Study", "Study"),
+        ("Other", "Other"),
+    ]
+    project_type = SelectField(
+        "Project Type",
+        choices=project_type_choices,
+        validators=[DataRequired()],
+    )
     is_public = BooleanField('Public Project')
     submit = SubmitField('Save Changes')
 
@@ -90,9 +110,25 @@ class EditProjectForm(FlaskForm):
 
 
 class MessageForm(FlaskForm):
-    text = TextAreaField('Message', validators=[DataRequired()])
-    file = FileField('File', validators=[FileAllowed(['jpg', 'png', 'jpeg', 'pdf', 'doc', 'docx', 'txt'])])
-    submit = SubmitField('Send')
+    text = TextAreaField("Message") # Removed DataRequired
+    file = FileField(
+        "File",
+        validators=[
+            FileAllowed(["jpg", "png", "jpeg", "pdf", "doc", "docx", "txt"]),
+            Optional(), # File is optional
+        ],
+    )
+    submit = SubmitField("Send")
+
+    def validate(self, extra_validators=None):
+        if not super().validate(extra_validators):
+            return False
+        if not self.text.data and not self.file.data:
+            msg = "Either text or a file is required."
+            self.text.errors.append(msg)
+            self.file.errors.append(msg)
+            return False
+        return True
 
 class ChatForm(FlaskForm):
     name = StringField('Chat Name', validators=[DataRequired()])
