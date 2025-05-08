@@ -54,7 +54,7 @@ def create_app(config_class='config.Config'):
     limiter.init_app(app)
     
     # Initialize SocketIO
-    socketio.init_app(app, message_queue=redis_url, cors_allowed_origins="*")
+    socketio.init_app(app, message_queue=redis_url, cors_allowed_origins="*", max_http_buffer_size=10 * 1024 * 1024)
     
     # Ensure upload directory exists
     os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)

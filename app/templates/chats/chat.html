@@ -13,7 +13,13 @@
                 <span>Members: <span id="chatMemberCount">{{ chat.members|length }}</span></span>
             </div>
         </div>
-        <div>
+        <div class="chat-actions-top">
+            {% if current_user.id == chat.creator_id or current_user in project.admins %}
+                 <form action="{{ url_for('chats.delete_chat', chat_id=chat.id) }}" method="POST" style="display: inline-block; margin-left: 10px;" onsubmit="return confirm('Are you sure you want to delete this chat and all its messages? This cannot be undone.');">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn-sm btn-danger">Delete Chat</button>
+                </form>
+            {% endif %}
             {% if current_user in chat.members %}
                 <a href="{{ url_for('chats.leave_chat', chat_id=chat.id) }}" class="btn btn-sm btn-warning" onclick="return confirm('Are you sure you want to leave this chat?')">Leave Chat</a>
             {% endif %}

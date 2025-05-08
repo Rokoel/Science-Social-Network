@@ -1007,3 +1007,73 @@ ul#chatMemberListUL div {
   display: flex;
   align-items: center;
 }
+
+.message-header a {
+  color: var(--text-color);
+  text-decoration: none;
+}
+
+.nav-search-container {
+  position: relative; /* For absolute positioning of the dropdown */
+  display: flex; /* Or inline-flex if preferred */
+  align-items: center;
+  margin-right: 1rem;
+}
+
+.nav-search-form {
+  display: flex;
+  align-items: center;
+  /* remove margin-right if handled by container */
+}
+
+/* input and button styles already defined */
+
+.search-results-dropdown {
+  display: none; /* Hidden by default */
+  position: absolute;
+  top: 100%; /* Position below the search input */
+  left: 0;
+  width: calc(100% + 30px); /* Match width of input + button, adjust as needed */
+  max-height: 300px;
+  overflow-y: auto;
+  background-color: var(--card-color);
+  border: 1px solid var(--border-color);
+  border-top: none; /* Optional: if it looks better without top border */
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  z-index: 1050; /* High z-index */
+  border-radius: 0 0 4px 4px;
+}
+
+.search-results-dropdown ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.search-results-dropdown li a {
+  display: block;
+  padding: 0.75rem 1rem;
+  color: var(--text-color);
+  text-decoration: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.search-results-dropdown li a:hover {
+  background-color: #f1f1f1;
+  text-decoration: none;
+}
+.search-results-dropdown li a .fa-folder,
+.search-results-dropdown li a .fa-comments {
+  margin-right: 0.5em;
+  color: #777;
+}
+.search-results-dropdown li .text-muted,
+.search-results-dropdown li .text-danger {
+    display: block; /* For "No results" or "Error" messages */
+    padding: 0.75rem 1rem;
+    color: #6c757d;
+}
+.search-results-dropdown li .text-danger {
+    color: var(--danger-color);
+}

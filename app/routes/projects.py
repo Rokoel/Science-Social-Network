@@ -1,14 +1,21 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, request, jsonify, current_app
 from flask_login import current_user, login_required
 from app import db, limiter, socketio
-from app.models import Project, User, Chat, Notification
+from app.models import Project, User, Chat, Notification, chat_members
 from app.forms import ProjectForm, SearchForm, EditProjectForm
-from datetime import datetime
-from sqlalchemy import or_
+from datetime import datetime, time
+from sqlalchemy import or_, and_
 
 projects_bp = Blueprint('projects', __name__, url_prefix='/projects')
 
 VALID_PROJECT_TYPES = ["Project", "Experiment", "Study", "Other"]
+
+def combine_date_time(date_obj, time_obj):
+    if date_obj and time_obj:
+        return datetime.combine(date_obj, time_obj)
+    elif date_obj: # If only date is provided, set time to end of day (23:59:59) or start (00:00:00)
+        return datetime.combine(date_obj, time.min) # Or time.max for end of day
+    return None
 
 @projects_bp.route('/feed')
 @login_required
@@ -52,12 +59,18 @@ def create():
         if project_type_data not in VALID_PROJECT_TYPES:
             project_type_data = "Other"
         
+        combined_deadline = combine_date_time(form.deadline_date.data, form.deadline_time.data)
+        if not combined_deadline:
+            flash("Invalid deadline date provided.")
+            # It's unlikely to reach here if DateField has DataRequired, but good for safety
+            return render_template('projects/create.html', title='Create Project', form=form)
+        
         project = Project(
             title=form.title.data,
             description=form.description.data,
             goals=form.goals.data,
             creator_id=current_user.id,
-            deadline=form.deadline.data,
+            deadline=combined_deadline,
             project_type=project_type_data,
             is_public=form.is_public.data
         )
@@ -208,10 +221,15 @@ def edit(id):
         if project_type_data not in VALID_PROJECT_TYPES:
             project_type_data = "Other"
         
+        combined_deadline = combine_date_time(form.deadline_date.data, form.deadline_time.data)
+        if not combined_deadline:
+            flash("Invalid deadline date provided.")
+            return render_template('projects/edit_project.html', title='Edit Project', form=form, project=project)
+        
         project.title = form.title.data
         project.description = form.description.data
         project.goals = form.goals.data
-        project.deadline = form.deadline.data
+        project.deadline = combined_deadline
         project.project_type = form.project_type.data
         project.is_public = form.is_public.data
         db.session.commit()
@@ -221,56 +239,124 @@ def edit(id):
         form.title.data = project.title
         form.description.data = project.description
         form.goals.data = project.goals
-        form.deadline.data = project.deadline
+        if project.deadline:
+            form.deadline_date.data = project.deadline.date()
+            # Only set time if it's not midnight (or your default)
+            if project.deadline.time() != time.min:
+                form.deadline_time.data = project.deadline.time()
         form.project_type.data = project.project_type
         form.is_public.data = project.is_public
 
     return render_template('projects/edit_project.html', title='Edit Project',
                            form=form, project=project)
 
-@projects_bp.route('/search')
+@projects_bp.route('/search_ajax') # Endpoint for live search dropdown
 @login_required
-def search():
-    query = request.args.get('query', '')
-    search_type = request.args.get('search_type', 'projects')
+def search_ajax():
+    query = request.args.get('query', '').strip()
     
-    if not query:
-        return jsonify([])
-    
-    if search_type == 'projects':
-        results = Project.query.filter(
-            or_(
-                Project.title.ilike(f'%{query}%'),
-                Project.description.ilike(f'%{query}%')
-            ),
-            Project.is_public == True
-        ).limit(10).all()
-        
-        return jsonify([{
+    if not query or len(query) < 2: # Minimum characters to trigger search
+        return jsonify([]) # Return empty list if query is too short
+
+    results_limit = 5 # Max number of items per category in dropdown
+
+    # Search public projects (title, description, goals)
+    project_results = Project.query.filter(
+        Project.is_public == True,
+        or_(
+            Project.title.ilike(f'%{query}%'),
+            Project.description.ilike(f'%{query}%'),
+            Project.goals.ilike(f'%{query}%')
+        )
+    ).order_by(Project.title).limit(results_limit).all() # Order for some consistency
+
+    # Search chats user is a member of (name)
+    chat_results = Chat.query.join(
+        chat_members # The association table
+    ).filter(
+        chat_members.c.user_id == current_user.id, # Filter by current user's membership
+        Chat.name.ilike(f'%{query}%')
+    ).order_by(Chat.name).limit(results_limit).all() # Order for some consistency
+
+    # Format results for the dropdown
+    formatted_results = []
+
+    for p in project_results:
+        formatted_results.append({
             'id': p.id,
-            'title': p.title,
-            'description': p.description,
-            'type': 'project'
-        } for p in results])
-    
-    elif search_type == 'chats':
-        # Only search chats the user is a member of
-        results = Chat.query.join(
-            Chat.members
-        ).filter(
-            User.id == current_user.id,
-            Chat.name.ilike(f'%{query}%')
-        ).limit(10).all()
-        
-        return jsonify([{
+            'title': p.title, # Use 'title' for projects
+            # 'description': (p.description[:75] + '...') if p.description and len(p.description) > 75 else p.description, # Optional: snippet
+            'type': 'project',
+            'url': url_for('projects.view', id=p.id)
+        })
+
+    for c in chat_results:
+        formatted_results.append({
             'id': c.id,
-            'name': c.name,
-            'project_id': c.project_id,
-            'project_title': c.project.title,
-            'type': 'chat'
-        } for c in results])
+            'name': c.name, # Use 'name' for chats
+            'project_title': c.project.title if c.project else 'N/A', # Context for chat
+            'type': 'chat',
+            'url': url_for('chats.view', id=c.id)
+        })
     
-    return jsonify([])
+    # Optional: If you want to interleave or sort combined results by relevance (more complex)
+    # For now, projects will appear first, then chats, up to the limit for each.
+    # You could sort formatted_results by 'title'/'name' if desired before sending.
+    # Example: formatted_results.sort(key=lambda x: x.get('title', x.get('name', '')).lower())
+
+    current_app.logger.debug(f"AJAX Search for '{query}' by user {current_user.id} found {len(formatted_results)} results.")
+    return jsonify(formatted_results)
+
+
+@projects_bp.route('/search') # Full search results page
+@login_required
+def search_results_page():
+    query = request.args.get('query', '').strip()
+    # If query is empty, maybe redirect to feed or show a message
+    if not query:
+        flash("Please enter a search term.")
+        return redirect(request.referrer or url_for('projects.feed'))
+
+
+    page = request.args.get('page', 1, type=int)
+    per_page = 10 
+
+    # Query for projects
+    project_query_obj = Project.query.filter(
+        Project.is_public == True,
+        or_(
+            Project.title.ilike(f'%{query}%'),
+            Project.description.ilike(f'%{query}%'),
+            Project.goals.ilike(f'%{query}%')
+        )
+    )
+    projects_paginated = project_query_obj.order_by(Project.created_at.desc()).paginate(page=page, per_page=per_page, error_out=False)
+    
+    # Query for chats
+    # For the full search page, we might want to paginate chats independently or combine differently.
+    # The previous implementation paginated them separately. Let's stick to that for now.
+    chat_query_obj = Chat.query.join(chat_members).filter(
+        chat_members.c.user_id == current_user.id,
+        Chat.name.ilike(f'%{query}%')
+    )
+    # If you want chats to have their own pagination on the search results page:
+    # chat_page = request.args.get('chat_page', 1, type=int) # Separate page param for chats
+    # chats_paginated = chat_query_obj.order_by(Chat.created_at.desc()).paginate(page=chat_page, per_page=per_page, error_out=False)
+    # For simplicity, let's assume for now the main 'page' param applies to both, or show all matching chats.
+    # Or, just show a limited number of chats on the main search results page if not paginating them separately.
+    
+    # For this example, let's paginate chats as well, using the same page number.
+    # This means if page=2 for projects, it's also page=2 for chats.
+    chats_paginated = chat_query_obj.order_by(Chat.created_at.desc()).paginate(page=page, per_page=per_page, error_out=False)
+
+
+    current_app.logger.debug(f"Full Search for '{query}' by user {current_user.id}. Projects found: {projects_paginated.total}, Chats found: {chats_paginated.total}")
+
+    return render_template('projects/search_results.html', 
+                           title=f"Search Results for '{query}'",
+                           query=query,
+                           projects=projects_paginated,
+                           chats=chats_paginated)
 
 @projects_bp.route('/<int:project_id>/manage_member/<int:user_id>/<action>')
 @login_required
@@ -353,3 +439,33 @@ def manage_member(project_id, user_id, action):
         socketio.emit('new_notification', {'count': Notification.query.filter_by(user_id=user_to_manage.id, dismissed=False).count()}, room=f'user_{user_to_manage.id}')
 
     return redirect(url_for('projects.view', id=project.id))
+
+@projects_bp.route('/<int:id>/delete', methods=['POST']) # POST to prevent accidental deletion via GET
+@login_required
+def delete_project(id):
+    project = Project.query.get_or_404(id)
+
+    # Authorization: Only project creator can delete
+    if current_user.id != project.creator_id:
+        flash('You are not authorized to delete this project. Only the creator can.')
+        return redirect(url_for('projects.view', id=project.id))
+
+    try:
+        # Delete associated notifications (optional, or handle via cascade)
+        Notification.query.filter_by(project_id=project.id).delete()
+        
+        # Chats are set to cascade delete via SQLAlchemy relationship,
+        # but messages within those chats might need explicit handling if not cascaded from chat.
+        # Assuming Message.chat_id has ondelete='CASCADE' or similar, or handled by chat cascade.
+        # If not, you'd loop through project.chats and delete messages first.
+
+        db.session.delete(project)
+        db.session.commit()
+        flash(f"Project '{project.title}' and all its associated chats and data have been deleted.")
+        current_app.logger.info(f"Project {id} deleted by user {current_user.id}")
+        return redirect(url_for('projects.feed'))
+    except Exception as e:
+        db.session.rollback()
+        current_app.logger.error(f"Error deleting project {id}: {str(e)}", exc_info=True)
+        flash("An error occurred while trying to delete the project. Please try again.")
+        return redirect(url_for('projects.view', id=project.id))

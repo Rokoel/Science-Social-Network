@@ -199,3 +199,35 @@ def kick_user_from_chat(chat_id, user_id):
     socketio.emit('new_notification', {'count': Notification.query.filter_by(user_id=user_to_kick.id, dismissed=False).count()}, room=f'user_{user_to_kick.id}')
 
     return redirect(url_for('chats.view', id=chat.id))
+
+@chats_bp.route('/<int:chat_id>/delete', methods=['POST'])
+@login_required
+def delete_chat(chat_id):
+    chat = Chat.query.get_or_404(chat_id)
+    project = Project.query.get_or_404(chat.project_id) # For redirect and auth context
+
+    # Authorization: Only chat creator OR a project admin can delete the chat
+    if not (current_user.id == chat.creator_id or current_user in project.admins):
+        flash('You are not authorized to delete this chat.')
+        return redirect(url_for('chats.view', id=chat.id))
+    
+    # Prevent deleting the last default chat of a project (optional rule)
+    # Example: if chat.name == f"{project.title} Chat (General)" and project.chats.count() == 1:
+    #     flash("Cannot delete the last default chat of the project.")
+    #     return redirect(url_for('projects.view', id=project.id))
+
+    try:
+        # Delete associated notifications for this chat (optional)
+        Notification.query.filter_by(chat_id=chat.id).delete()
+        # Messages are set to cascade delete via SQLAlchemy relationship with Chat.
+
+        db.session.delete(chat)
+        db.session.commit()
+        flash(f"Chat '{chat.name}' has been deleted.")
+        current_app.logger.info(f"Chat {chat_id} deleted by user {current_user.id}")
+        return redirect(url_for('projects.view', id=project.id))
+    except Exception as e:
+        db.session.rollback()
+        current_app.logger.error(f"Error deleting chat {chat_id}: {str(e)}", exc_info=True)
+        flash("An error occurred while trying to delete the chat. Please try again.")
+        return redirect(url_for('chats.view', id=chat.id))

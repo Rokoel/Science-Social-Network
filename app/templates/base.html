@@ -17,6 +17,14 @@
         </div>
         <nav>
             {% if current_user.is_authenticated %}
+                <div class="nav-search-container"> {# Wrapper for positioning dropdown #}
+                    <form id="universal-search-form" class="nav-search-form" action="{{ url_for('projects.search_ajax') }}" method="GET" autocomplete="off">
+                        <input type="text" id="universal-search-query" name="query" placeholder="Search projects & chats..." value="{{ request.args.get('query', '') }}">
+                    </form>
+                    <div id="universal-search-results-dropdown" class="search-results-dropdown" style="display: none;">
+                        {# Results will be populated here by JS #}
+                    </div>
+                </div>
                 <ul>
                     <li><a href="{{ url_for('projects.feed') }}">Projects</a></li>
                     <li><a href="{{ url_for('projects.create') }}">Create Project</a></li>
@@ -265,6 +273,68 @@
             
             // Initial load
             loadNotifications();
+
+            const $searchQueryInput = $('#universal-search-query');
+            const $searchResultsDropdown = $('#universal-search-results-dropdown');
+            let searchTimeout;
+
+            if ($searchQueryInput.length) {
+                $searchQueryInput.on('input', function() {
+                    clearTimeout(searchTimeout);
+                    const query = $(this).val().trim();
+
+                    if (query.length < 2) { // Minimum characters to trigger search
+                        $searchResultsDropdown.hide().empty();
+                        return;
+                    }
+
+                    searchTimeout = setTimeout(function() {
+                        console.log("[CLIENT] Live searching for:", query);
+                        $.ajax({
+                            url: "{{ url_for('projects.search_ajax') }}", // Use the AJAX endpoint
+                            data: { query: query },
+                            dataType: 'json',
+                            success: function(data) {
+                                console.log("[CLIENT] Live search results:", data);
+                                $searchResultsDropdown.empty();
+                                if (data && data.length > 0) {
+                                    let html = '<ul>';
+                                    data.forEach(function(item) {
+                                        let icon = item.type === 'project' ? '<i class="fas fa-folder"></i>' : '<i class="fas fa-comments"></i>';
+                                        html += `<li><a href="${item.url}">${icon} ${item.title || item.name} <small class="text-muted">(${item.type})</small></a></li>`;
+                                    });
+                                    html += '</ul>';
+                                    $searchResultsDropdown.html(html).show();
+                                } else {
+                                    $searchResultsDropdown.html('<ul><li><span class="text-muted">No instant results found.</span></li></ul>').show();
+                                }
+                            },
+                            error: function(jqXHR, textStatus, errorThrown) {
+                                console.error("[CLIENT] Live search AJAX error:", textStatus, errorThrown);
+                                $searchResultsDropdown.html('<ul><li><span class="text-danger">Error loading results.</span></li></ul>').show();
+                            }
+                        });
+                    }, 300); // Debounce: wait 300ms after user stops typing
+                });
+
+                // Hide dropdown if clicked outside
+                $(document).on('click', function(event) {
+                    if (!$searchQueryInput.is(event.target) && !$searchResultsDropdown.is(event.target) && $searchResultsDropdown.has(event.target).length === 0) {
+                        $searchResultsDropdown.hide();
+                    }
+                });
+
+                // Allow form submission if user presses Enter (optional, or just rely on dropdown clicks)
+                $('#universal-search-form').on('submit', function(e) {
+                    const query = $searchQueryInput.val().trim();
+                    if (query.length < 1) { // Or your preferred minimum for a full page search
+                        e.preventDefault(); // Prevent submitting empty query to full page
+                        $searchResultsDropdown.hide().empty();
+                    }
+                    // Allow normal form submission to projects.search_results_page
+                    $searchResultsDropdown.hide(); // Hide dropdown on submit
+                });
+            }
         });
     </script>
     {% endif %}

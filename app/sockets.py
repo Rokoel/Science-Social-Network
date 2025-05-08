@@ -88,6 +88,7 @@ def handle_send_message(data):
             saved_file_path = filename
         except Exception as e:
             current_app.logger.error(f"File upload error: {e}")
+            current_app.logger.warning(f"IMPORTANT! File upload failed for user {current_user.username} in chat {chat_id}")
             emit('error', {'message': 'File upload failed'})
             # Optionally, do not proceed with message saving if file upload is critical and failed
             # return 

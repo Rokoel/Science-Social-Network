@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileField, FileAllowed
-from wtforms import StringField, PasswordField, TextAreaField, SubmitField, BooleanField, SelectField, DateTimeField
+from wtforms import StringField, PasswordField, TextAreaField, SubmitField, BooleanField, SelectField, DateTimeField, DateField, TimeField
 from wtforms.validators import DataRequired, Email, EqualTo, Length, ValidationError, Optional
 from app.models import User, Project
 
@@ -64,7 +64,8 @@ class ProjectForm(FlaskForm):
     title = StringField('Title', validators=[DataRequired()])
     description = TextAreaField('Description', validators=[DataRequired()])
     goals = TextAreaField('Goals', validators=[DataRequired()])
-    deadline = DateTimeField('Deadline', format='%Y-%m-%dT%H:%M', validators=[DataRequired()])
+    deadline_date = DateField('Deadline Date', format='%d/%m/%Y', validators=[DataRequired()])
+    deadline_time = TimeField('Deadline Time (Optional, 24hr format HH:MM)', format='%H:%M', validators=[Optional()])
     project_type_choices = [
         ("Project", "Project"),
         ("Experiment", "Experiment"),
@@ -83,7 +84,8 @@ class EditProjectForm(FlaskForm):
     title = StringField('Title', validators=[DataRequired()])
     description = TextAreaField('Description', validators=[DataRequired()])
     goals = TextAreaField('Goals', validators=[DataRequired()])
-    deadline = DateTimeField('Deadline', format='%Y-%m-%dT%H:%M', validators=[DataRequired()])
+    deadline_date = DateField('Deadline Date', format='%d/%m/%Y', validators=[DataRequired()])
+    deadline_time = TimeField('Deadline Time (Optional, 24hr format HH:MM)', format='%H:%M', validators=[Optional()])
     project_type_choices = [
         ("Project", "Project"),
         ("Experiment", "Experiment"),
