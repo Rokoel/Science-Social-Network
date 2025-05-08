@@ -1,603 +1,1011 @@
 /* Base Styles */
 :root {
-    --primary-color: #3498db;
-    --secondary-color: #2c3e50;
-    --background-color: #f9f9f9;
-    --card-color: #fff;
-    --text-color: #333;
-    --border-color: #ddd;
-    --success-color: #2ecc71;
-    --danger-color: #e74c3c;
-    --warning-color: #f39c12;
-  }
-  
-  * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-  }
-  
-  body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    line-height: 1.6;
-    color: var(--text-color);
-    background-color: var(--background-color);
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-  }
-  
-  a {
-    color: var(--primary-color);
-    text-decoration: none;
-  }
-  
-  a:hover {
-    text-decoration: underline;
-  }
-  
-  /* Header Styles */
-  header {
-    background-color: var(--secondary-color);
-    color: white;
-    padding: 1rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-  
-  header h1 {
-    font-size: 1.5rem;
-    margin: 0;
-  }
-  
-  nav ul {
-    display: flex;
-    list-style: none;
-    gap: 1rem;
-  }
-  
-  nav a {
-    color: white;
-    padding: 0.5rem;
-    border-radius: 4px;
-  }
-  
-  nav a:hover {
-    background-color: rgba(255, 255, 255, 0.1);
-    text-decoration: none;
-  }
-  
-  /* Main Content */
-  main {
-    flex: 1;
-    padding: 2rem;
-    max-width: 1200px;
-    margin: 0 auto;
-    width: 100%;
-  }
-  
-  /* Flash Messages */
-  .flash-messages {
-    margin-bottom: 1.5rem;
-  }
-  
-  .flash-message {
-    padding: 0.75rem 1rem;
-    border-radius: 4px;
-    background-color: var(--primary-color);
-    color: white;
-    margin-bottom: 0.5rem;
-  }
-  
-  /* Footer */
-  footer {
-    background-color: var(--secondary-color);
-    color: white;
-    text-align: center;
-    padding: 1rem;
-    margin-top: auto;
-  }
-  
-  /* Card Styles */
-  .card {
-    background-color: var(--card-color);
-    border-radius: 8px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    margin-bottom: 1.5rem;
-    overflow: hidden;
-  }
-  
-  .card-header {
-    padding: 1rem;
-    background-color: var(--primary-color);
-    color: white;
-  }
-  
-  .card-body {
-    padding: 1.5rem;
-  }
-  
-  .card-footer {
-    padding: 1rem;
-    background-color: rgba(0, 0, 0, 0.03);
-    border-top: 1px solid var(--border-color);
-  }
-  
-  /* Form Styles */
-  .form-group {
-    margin-bottom: 1rem;
-  }
-  
-  .form-control {
-    width: 100%;
-    padding: 0.75rem;
-    border: 1px solid var(--border-color);
-    border-radius: 4px;
-    font-size: 1rem;
-  }
-  
-  .form-control:focus {
-    border-color: var(--primary-color);
-    outline: none;
-    box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.25);
-  }
-  
-  .form-check {
-    display: flex;
-    align-items: center;
-    margin-bottom: 1rem;
-  }
-  
-  .form-check-input {
-    margin-right: 0.5rem;
-  }
-  
-  .errors {
-    color: var(--danger-color);
-    font-size: 0.875rem;
-    margin-top: 0.25rem;
-  }
-  
-  .btn {
-    display: inline-block;
-    font-weight: 400;
-    text-align: center;
-    vertical-align: middle;
-    cursor: pointer;
-    padding: 0.75rem 1rem;
-    font-size: 1rem;
-    border-radius: 4px;
-    transition: background-color 0.15s ease-in-out, border-color 0.15s ease-in-out;
-    border: none;
-  }
-  
-  .btn-primary {
-    background-color: var(--primary-color);
-    color: white;
-  }
-  
-  .btn-primary:hover {
-    background-color: #2980b9;
-  }
-  
-  .btn-danger {
-    background-color: var(--danger-color);
-    color: white;
-  }
-  
-  .btn-danger:hover {
-    background-color: #c0392b;
-  }
-  
-  .btn-success {
-    background-color: var(--success-color);
-    color: white;
-  }
-  
-  .btn-success:hover {
-    background-color: #27ae60;
-  }
+  --primary-color: #3498db;
+  --secondary-color: #2c3e50;
+  --background-color: #f9f9f9;
+  --card-color: #fff;
+  --text-color: #333;
+  --border-color: #ddd;
+  --success-color: #2ecc71;
+  --danger-color: #e74c3c;
+  --warning-color: #f39c12;
+  --info-color: #3498db; /* Added for consistency */
+}
 
-  /* Landing Page Styles */
-  .landing-container {
-    max-width: 1200px;
-    margin: 0 auto;
-  }
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
 
-  .landing-hero {
-    text-align: center;
-    padding: 4rem 1rem;
-  }
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  line-height: 1.6;
+  color: var(--text-color);
+  background-color: var(--background-color);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
 
-  .landing-hero h1 {
-    font-size: 3rem;
-    margin-bottom: 1rem;
-    color: var(--secondary-color);
-  }
+a {
+  color: var(--primary-color);
+  text-decoration: none;
+}
 
-  .landing-hero h2 {
-    font-size: 1.5rem;
-    color: #666;
-    margin-bottom: 2.5rem;
-    font-weight: normal;
-  }
+a:hover {
+  text-decoration: underline;
+}
 
-  .landing-cta {
-    display: flex;
-    justify-content: center;
-    gap: 1rem;
-  }
+/* Utility Classes (Optional but helpful) */
+.d-flex {
+  display: flex !important;
+}
+.justify-content-between {
+  justify-content: space-between !important;
+}
+.align-items-center {
+  align-items: center !important;
+}
+.mt-3 {
+  margin-top: 1rem !important; /* Adjust as needed */
+}
+.mb-0 {
+  margin-bottom: 0 !important;
+}
+.mb-4 {
+  margin-bottom: 1.5rem !important;
+}
+.ms-1 {
+  margin-left: 0.25rem !important;
+}
+.ms-2 {
+  margin-left: 0.5rem !important;
+}
+.float-end {
+  float: right !important;
+}
+.text-dark {
+  color: #212529 !important; /* Or your dark text color */
+}
+.text-muted {
+  color: #6c757d !important; /* Or your muted color */
+}
 
-  .btn-secondary {
-    background-color: #fff;
-    color: var(--primary-color);
-    border: 1px solid var(--primary-color);
-  }
+/* Row and Column basic setup (if you don't have a grid system) */
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  margin-right: -15px; /* Adjust gutter */
+  margin-left: -15px;  /* Adjust gutter */
+}
+.col-md-9, .col-md-3 {
+  position: relative;
+  width: 100%;
+  padding-right: 15px; /* Adjust gutter */
+  padding-left: 15px;  /* Adjust gutter */
+}
 
-  .btn-secondary:hover {
-    background-color: #f8f9fa;
+@media (min-width: 768px) { /* 'md' breakpoint */
+  .col-md-9 {
+    flex: 0 0 75%;
+    max-width: 75%;
   }
+  .col-md-3 {
+    flex: 0 0 25%;
+    max-width: 25%;
+  }
+}
 
-  .features-section {
-    padding: 2rem 1rem 4rem;
-  }
 
-  .features-section h3 {
-    text-align: center;
-    font-size: 1.75rem;
-    margin-bottom: 2rem;
-    color: var(--secondary-color);
-  }
+/* Header Styles */
+header {
+  background-color: var(--secondary-color);
+  color: white;
+  padding: 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
 
-  .features-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 2rem;
-  }
+header h1 {
+  font-size: 1.5rem;
+  margin: 0;
+}
 
-  .feature-card {
-    background-color: var(--card-color);
-    padding: 1.5rem;
-    border-radius: 8px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    text-align: center;
-  }
+nav ul {
+  display: flex;
+  list-style: none;
+  flex-direction: row;
+  align-items: center;
+  gap: 1rem;
+}
 
-  .feature-icon {
-    font-size: 2.5rem;
-    margin-bottom: 1rem;
-  }
+nav a {
+  color: white;
+  padding: 0.5rem;
+  border-radius: 4px;
+}
 
-  .feature-card h4 {
-    margin-bottom: 0.75rem;
-    color: var(--primary-color);
-  }
+nav a:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  text-decoration: none;
+}
 
-  
-  /* Auth Styles */
-  .auth-container {
-    max-width: 500px;
-    margin: 0 auto;
-  }
-  
-  .auth-card {
-    background-color: var(--card-color);
-    padding: 2rem;
-    border-radius: 8px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  }
-  
-  .auth-card h2 {
-    margin-bottom: 1.5rem;
-    text-align: center;
-    color: var(--secondary-color);
-  }
-  
-  .auth-links {
-    text-align: center;
-    margin-top: 1.5rem;
-  }
-  
-  /* Project Styles */
-  .project-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 1.5rem;
-  }
-  
-  .project-card {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-  }
-  
-  .project-card .card-body {
-    flex: 1;
-  }
-  
-  .project-actions {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 1rem;
-  }
-  
-  .project-meta {
-    color: #666;
-    font-size: 0.875rem;
-    margin-bottom: 0.5rem;
-  }
-  
-  .project-feed-filters {
-    margin-bottom: 2rem;
-    padding: 1rem;
-    background-color: var(--card-color);
-    border-radius: 8px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-  }
-  
-  /* Chat Styles */
-  .chat-container {
-    display: flex;
-    flex-direction: column;
-    height: 70vh;
-    background-color: var(--card-color);
-    border-radius: 8px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    overflow: hidden;
-  }
-  
-  .chat-header {
-    padding: 1rem;
-    background-color: var(--primary-color);
-    color: white;
-  }
+/* Main Content */
+main {
+  flex: 1;
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+}
 
-  .message-header img {
-    max-width: 3em;
-    max-height: 3em;
-  }
+/* Flash Messages */
+.flash-messages {
+  margin-bottom: 1.5rem;
+}
 
-  .message-attachment img {
-    max-width: 60vw;
-    max-height: 60vw;
-  }
+.flash-message {
+  padding: 0.75rem 1rem;
+  border-radius: 4px;
+  background-color: var(--primary-color);
+  color: white;
+  margin-bottom: 0.5rem;
+}
 
-  li img {
-    max-width: 3em;
-    max-height: 3em;
-  }
-  li {
-    list-style: none;
-    margin-bottom: 1rem;
-  }
-  li > div {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-  }
-  li > div * {
-    margin-right: 0.5em;
-  }
-  
-  .chat-messages {
-    flex: 1;
-    padding: 1rem;
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column-reverse;
-  }
-  
+/* Footer */
+footer {
+  background-color: var(--secondary-color);
+  color: white;
+  text-align: center;
+  padding: 1rem;
+  margin-top: auto;
+}
+
+/* Card Styles */
+.card {
+  background-color: var(--card-color);
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  margin-bottom: 1.5rem;
+  overflow: hidden; /* Good for keeping rounded corners with headers */
+}
+
+.card-header {
+  padding: 1rem 1.5rem; /* Adjusted padding */
+  background-color: #f8f9fa; /* Lighter header */
+  color: var(--secondary-color);
+  border-bottom: 1px solid var(--border-color); /* Add border to header */
+}
+.card-header h1, .card-header h2, .card-header h3 {
+  margin-bottom: 0; /* Remove default margin from headings in card headers */
+}
+
+.card-body {
+  padding: 1.5rem;
+}
+
+.card-footer {
+  padding: 1rem 1.5rem; /* Adjusted padding */
+  background-color: rgba(0, 0, 0, 0.03);
+  border-top: 1px solid var(--border-color);
+}
+
+/* Form Styles */
+.form-group {
+  margin-bottom: 1rem;
+}
+
+.form-control {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  font-size: 1rem;
+}
+
+.form-control:focus {
+  border-color: var(--primary-color);
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.25);
+}
+
+.form-check {
+  display: flex;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.form-check-input {
+  margin-right: 0.5rem;
+}
+
+.errors {
+  color: var(--danger-color);
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+}
+
+.btn {
+  display: inline-block;
+  font-weight: 400;
+  text-align: center;
+  vertical-align: middle;
+  cursor: pointer;
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+  border-radius: 4px;
+  transition: background-color 0.15s ease-in-out, border-color 0.15s ease-in-out;
+  border: 1px solid transparent; /* Added for consistency */
+}
+
+.btn-primary {
+  background-color: var(--primary-color);
+  color: white;
+  border-color: var(--primary-color);
+}
+
+.btn-primary:hover {
+  background-color: #2980b9;
+  border-color: #2980b9;
+}
+
+.btn-danger {
+  background-color: var(--danger-color);
+  color: white;
+  border-color: var(--danger-color);
+}
+
+.btn-danger:hover {
+  background-color: #c0392b;
+  border-color: #c0392b;
+}
+
+.btn-success {
+  background-color: var(--success-color);
+  color: white;
+  border-color: var(--success-color);
+}
+
+.btn-success:hover {
+  background-color: #27ae60;
+  border-color: #27ae60;
+}
+
+.btn-warning { /* Added warning button style */
+  background-color: var(--warning-color);
+  color: white;
+  border-color: var(--warning-color);
+}
+.btn-warning:hover {
+  background-color: #d48c11; /* Darker warning */
+  border-color: #d48c11;
+}
+
+.btn-info { /* Added info button style */
+  background-color: var(--info-color);
+  color: white;
+  border-color: var(--info-color);
+}
+.btn-info:hover {
+  background-color: #2980b9; /* Same as primary hover for this example */
+  border-color: #2980b9;
+}
+
+.btn-secondary { /* Modified for consistency */
+  background-color: #6c757d; /* A common secondary color */
+  color: white;
+  border-color: #6c757d;
+}
+
+.btn-secondary:hover {
+  background-color: #5a6268;
+  border-color: #545b62;
+}
+
+.btn-outline-primary { /* Added for invite button */
+  color: var(--primary-color);
+  border-color: var(--primary-color);
+  background-color: transparent;
+}
+.btn-outline-primary:hover {
+  color: white;
+  background-color: var(--primary-color);
+}
+
+.btn-sm { /* Small button variant */
+  padding: 0.25rem 0.5rem;
+  font-size: 0.875rem;
+  border-radius: 0.2rem;
+}
+.btn-xs { /* Extra small button variant for icons */
+  padding: 0.15rem 0.4rem;
+  font-size: 0.75rem;
+  line-height: 1.2;
+}
+
+/* Landing Page Styles */
+.landing-container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.landing-hero {
+  text-align: center;
+  padding: 4rem 1rem;
+}
+
+.landing-hero h1 {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  color: var(--secondary-color);
+}
+
+.landing-hero h2 {
+  font-size: 1.5rem;
+  color: #666;
+  margin-bottom: 2.5rem;
+  font-weight: normal;
+}
+
+.landing-cta {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+}
+
+/* .btn-secondary for landing page was different, ensure consistency or specific override */
+.landing-cta .btn-secondary {
+  background-color: #fff; /* Keep landing page specific style if intended */
+  color: var(--primary-color);
+  border: 1px solid var(--primary-color);
+}
+
+.landing-cta .btn-secondary:hover {
+  background-color: #f8f9fa;
+}
+
+.features-section {
+  padding: 2rem 1rem 4rem;
+}
+
+.features-section h3 {
+  text-align: center;
+  font-size: 1.75rem;
+  margin-bottom: 2rem;
+  color: var(--secondary-color);
+}
+
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 2rem;
+}
+
+.feature-card {
+  background-color: var(--card-color);
+  padding: 1.5rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  text-align: center;
+}
+
+.feature-icon {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+}
+
+.feature-card h4 {
+  margin-bottom: 0.75rem;
+  color: var(--primary-color);
+}
+
+
+/* Auth Styles */
+.auth-container {
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+.auth-card {
+  background-color: var(--card-color);
+  padding: 2rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.auth-card h2 {
+  margin-bottom: 1.5rem;
+  text-align: center;
+  color: var(--secondary-color);
+}
+
+.auth-links {
+  text-align: center;
+  margin-top: 1.5rem;
+}
+
+/* Project Styles */
+.page-title { /* General page title style */
+  font-size: 2rem;
+  color: var(--secondary-color);
+  margin-bottom: 1.5rem;
+  border-bottom: 2px solid var(--primary-color);
+  padding-bottom: 0.5rem;
+}
+
+.project-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+.project-card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.project-card .card-body {
+  flex: 1;
+  display: flex; /* Added for better control of content */
+  flex-direction: column; /* Stack content vertically */
+}
+.project-card .card-body p {
+  flex-grow: 1; /* Allow description to take available space */
+}
+
+.project-actions {
+  display: flex;
+  justify-content: space-between; /* Keep this if you have multiple actions */
+  margin-top: auto; /* Push actions to the bottom */
+}
+.project-actions .btn { /* Ensure buttons in actions don't overstretch */
+  flex-grow: 0;
+}
+
+.project-meta {
+  color: #666;
+  font-size: 0.875rem;
+  margin-bottom: 1rem; /* Increased margin */
+}
+.project-meta span, .project-meta div { /* Ensure meta items stack nicely */
+  display: block;
+  margin-bottom: 0.25rem;
+}
+
+.project-feed-filters {
+  margin-bottom: 2rem;
+  padding: 1.5rem; /* Increased padding */
+  background-color: var(--card-color);
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+.project-feed-filters .form-row { /* Basic form row for filters */
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: flex-end;
+}
+.project-feed-filters .form-group {
+  flex: 1;
+  min-width: 200px; /* Prevent filters from becoming too narrow */
+}
+
+/* Chat Styles */
+.chat-header-info { /* Container for chat title and meta */
+  margin-bottom: 1.5rem;
+}
+.chat-header-info .page-title {
+  border-bottom: none; /* Remove double border if page-title is used here */
+  padding-bottom: 0;
+  margin-bottom: 0.25rem;
+}
+.chat-meta {
+  font-size: 0.9rem;
+  color: #555;
+}
+.chat-meta span {
+  margin-right: 1rem;
+}
+.chat-meta span:last-child {
+  margin-right: 0;
+}
+
+.chat-container { /* This is now for the message area specifically if using row/col */
+  display: flex;
+  flex-direction: column;
+  height: 70vh; /* Or adjust as needed */
+  background-color: var(--card-color);
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.chat-header { /* This is the header within the chat message area */
+  padding: 1rem;
+  background-color: #f1f1f1; /* Lighter header for message area */
+  border-bottom: 1px solid var(--border-color);
+  color: var(--text-color); /* Adjust if needed */
+}
+.chat-header h3 {
+  margin: 0;
+  font-size: 1.2rem;
+}
+
+.chat-avatar-small { /* Style for small avatars in chat/lists */
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-right: 0.5rem;
+  border: 1px solid var(--border-color);
+}
+
+.message-header { /* Added style for message author line */
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.25rem;
+}
+.message-header strong {
+  margin-left: 0.25rem; /* Space after avatar */
+}
+
+.message-attachment img {
+  max-width: 200px; /* Constrain image attachment size */
+  max-height: 200px;
+  border-radius: 4px;
+  margin-top: 0.5rem;
+}
+.message-attachment a {
+  display: inline-block; /* For better layout of file links */
+}
+
+/* Chat Member List Styles */
+.list-group { /* Basic list group styling */
+  padding-left: 0;
+  margin-bottom: 0;
+}
+.list-group-item {
+  position: relative;
+  display: block;
+  padding: 0.75rem 1.25rem;
+  background-color: #fff;
+  border-bottom: 1px solid var(--border-color); /* Separator for items */
+}
+.list-group-item:first-child {
+  border-top-left-radius: inherit; /* Match card radius */
+  border-top-right-radius: inherit;
+}
+.list-group-item:last-child {
+  border-bottom-right-radius: inherit;
+  border-bottom-left-radius: inherit;
+  border-bottom: none; /* No border for last item if inside a card */
+}
+.list-group-item.d-flex { /* Ensure items with flex align well */
+  align-items: center;
+}
+.list-group-item .badge { /* Style for badges within list items */
+  font-size: 0.75em;
+  padding: 0.25em 0.4em;
+}
+.bg-info { background-color: var(--info-color) !important; } /* Badge colors */
+.bg-primary { background-color: var(--primary-color) !important; }
+
+
+/* Custom Dropdown for Invite Member */
+.custom-dropdown-container {
+  position: relative; /* Needed for absolute positioning of the menu */
+  display: inline-block;
+}
+.custom-dropdown-menu {
+  display: none; /* Hidden by default, shown by JS */
+  position: absolute;
+  top: 100%; /* Position below the button */
+  right: 0; /* Align to the right of the button */
+  background-color: var(--card-color);
+  min-width: 200px; /* Adjust as needed */
+  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+  z-index: 100; /* Ensure it's above other content */
+  list-style-type: none;
+  padding: 0.5rem 0; /* Padding for the menu itself */
+  margin: 0.125rem 0 0; /* Small margin from button */
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+}
+.custom-dropdown-menu li {
+  padding: 0; /* Remove default li padding if any */
+  margin-bottom: 0; /* Override general li margin */
+}
+.custom-dropdown-menu li .dropdown-item-link,
+.custom-dropdown-menu li .dropdown-item-text {
+  display: block;
+  padding: 0.5rem 1rem;
+  color: var(--text-color);
+  text-decoration: none;
+  clear: both;
+  font-weight: 400;
+  white-space: nowrap;
+}
+.custom-dropdown-menu li .dropdown-item-link:hover {
+  background-color: #f1f1f1;
+  text-decoration: none;
+}
+.custom-dropdown-menu li .dropdown-item-text {
+  color: #6c757d; /* Muted text for "no one to invite" */
+}
+
+
+/* Chat messages (existing styles are good, minor adjustments) */
+.chat-messages {
+  flex: 1;
+  padding: 1rem;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column-reverse; /* This keeps new messages at the bottom */
+}
+
+.message {
+  margin-bottom: 1rem;
+  max-width: 70%; /* Slightly reduced max-width */
+  padding: 0.75rem 1rem; /* Moved padding here */
+  border-radius: 18px; /* Base radius */
+  line-height: 1.4; /* Improved readability */
+}
+
+.message-outgoing {
+  align-self: flex-end;
+  background-color: var(--primary-color);
+  color: white;
+  border-bottom-right-radius: 4px; /* Bubble tail */
+}
+
+.message-incoming {
+  align-self: flex-start;
+  background-color: #e9eaed;
+  color: var(--text-color); /* Ensure text color for incoming */
+  border-bottom-left-radius: 4px; /* Bubble tail */
+}
+
+.message-meta {
+  font-size: 0.75rem;
+  margin-top: 0.35rem; /* Increased margin */
+  opacity: 0.8; /* Slightly more visible */
+  display: block; /* Ensure it takes its own line if needed */
+}
+
+.chat-form {
+  padding: 1rem;
+  background-color: #f8f9fa; /* Slightly lighter than f1f1f1 */
+  display: flex;
+  gap: 0.75rem; /* Increased gap */
+  border-top: 1px solid var(--border-color);
+}
+
+.chat-form .form-control { /* Target textarea/inputs within chat-form */
+  flex: 1;
+  /* padding: 0.75rem; */ /* Already defined in .form-control */
+  /* border: 1px solid var(--border-color); */
+  /* border-radius: 4px; */
+  resize: none;
+  font-family: inherit;
+}
+.chat-form .btn {
+  height: fit-content; /* Align button height with input */
+  align-self: center; /* Vertically align button */
+}
+
+/* Notification Styles */
+.notifications-dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.dropdown-btn {
+  background-color: transparent;
+  border: none;
+  color: white;
+  cursor: pointer;
+  font-size: 1.25rem;
+  display: flex;
+  align-items: center;
+  padding: 0.5rem; /* Added padding for better click area */
+}
+
+.notification-count {
+  background-color: var(--danger-color);
+  color: white;
+  border-radius: 50%;
+  padding: 0.1em 0.4em; /* Adjusted padding */
+  font-size: 0.7rem; /* Slightly smaller */
+  margin-left: 0.35rem; /* Adjusted margin */
+  line-height: 1; /* Ensure text is centered */
+  min-width: 18px; /* Ensure it's somewhat circular even with 1 digit */
+  text-align: center;
+}
+
+.dropdown-content {
+  display: none;
+  position: absolute;
+  right: 0;
+  background-color: var(--card-color);
+  min-width: 320px; /* Slightly wider */
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+  z-index: 1000; /* High z-index */
+  border-radius: 4px;
+  max-height: 400px;
+  overflow-y: auto;
+  border: 1px solid var(--border-color); /* Added border */
+}
+
+.notification-item {
+  padding: 0.75rem 1rem; /* Adjusted padding */
+  border-bottom: 1px solid var(--border-color);
+  font-size: 0.9rem; /* Slightly smaller font for notification text */
+}
+.notification-item p {
+  margin-bottom: 0.25rem; /* Space between text and meta */
+}
+.notification-item small { /* Timestamp */
+  color: #777;
+  font-size: 0.8em;
+}
+
+.notification-item:last-child {
+  border-bottom: none;
+}
+
+.notification-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.75rem; /* Increased margin */
+}
+
+.accept-btn, .reject-btn, .dismiss-btn {
+  padding: 0.25rem 0.75rem; /* Adjusted padding */
+  border-radius: 4px;
+  font-size: 0.8rem; /* Adjusted font size */
+  cursor: pointer;
+  border: none;
+}
+
+.accept-btn {
+  background-color: var(--success-color);
+  color: white;
+}
+
+.reject-btn {
+  background-color: var(--danger-color);
+  color: white;
+}
+
+.dismiss-btn {
+  background-color: #e9ecef; /* Lighter dismiss */
+  color: var(--text-color);
+  margin-left: auto; /* Push dismiss to the right if in flex */
+  margin-top: 0.5rem; /* Keep consistent margin */
+}
+.notification-item > .dismiss-btn { /* If dismiss is direct child */
+  display: block; /* Make it take full width or align as needed */
+  width: fit-content;
+  margin-left: auto; /* Push to right */
+}
+
+/* Profile Styles */
+.profile-container {
+  display: grid;
+  grid-template-columns: 1fr 2.5fr; /* Adjusted ratio */
+  gap: 2rem;
+}
+
+.profile-sidebar {
+  /* background-color: var(--card-color); */ /* Already a card */
+  /* border-radius: 8px; */
+  /* box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); */
+  padding: 1.5rem;
+}
+
+.profile-avatar-container { /* Added container for easier centering if needed */
+  text-align: center;
+  margin-bottom: 1rem;
+}
+.profile-avatar {
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  /* margin: 0 auto 1rem; */ /* Handled by container */
+  /* display: block; */
+  object-fit: cover;
+  border: 4px solid var(--primary-color); /* Slightly thinner border */
+}
+
+.profile-info h2 {
+  text-align: center;
+  margin-bottom: 1rem;
+  color: var(--secondary-color); /* Match other titles */
+}
+.profile-info p {
+  margin-bottom: 0.5rem; /* Spacing for profile details */
+}
+
+.profile-main {
+  /* background-color: var(--card-color); */ /* Already a card */
+  /* border-radius: 8px; */
+  /* box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); */
+  /* padding: 1.5rem; */ /* Card-body will handle this */
+}
+
+.achievements-section {
+  margin-top: 2rem;
+}
+
+.achievements-section h3 {
+  margin-bottom: 1rem;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 0.5rem;
+  color: var(--secondary-color); /* Consistent heading color */
+}
+
+.achievement-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); /* Smaller minmax */
+  gap: 1rem;
+}
+
+.achievement-item {
+  text-align: center;
+  padding: 0.75rem; /* Adjusted padding */
+  border-radius: 8px;
+  background-color: #f8f9fa; /* Lighter background */
+  border: 1px solid var(--border-color); /* Added border */
+}
+
+.achievement-icon {
+  width: 40px; /* Slightly smaller */
+  height: 40px;
+  margin: 0 auto 0.5rem;
+  object-fit: contain; /* Ensure icon isn't stretched */
+}
+
+.achievement-name {
+  font-weight: bold;
+  font-size: 0.8rem; /* Slightly smaller */
+  color: var(--text-color);
+}
+
+/* Search Styles */
+.search-container { /* Added a container for search section */
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  background-color: var(--card-color);
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+.search-container h3 {
+  margin-bottom: 1rem;
+  color: var(--secondary-color);
+}
+
+.search-form {
+  margin-bottom: 1.5rem;
+  display: flex;
+  gap: 0.75rem; /* Adjusted gap */
+  align-items: center; /* Align items vertically */
+}
+
+.search-form input[type="text"], .search-form select { /* More specific */
+  flex: 1;
+  padding: 0.75rem;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  font-size: 1rem; /* Ensure consistent font size */
+}
+.search-form select {
+  flex-grow: 0.5; /* Make select slightly smaller if needed */
+  min-width: 120px;
+}
+.search-form button {
+  padding: 0.75rem 1.25rem; /* Match input padding */
+}
+
+.search-results {
+  margin-top: 1.5rem;
+  border-top: 1px solid var(--border-color);
+  padding-top: 1rem;
+}
+.search-results ul {
+  list-style: none;
+  padding-left: 0;
+}
+.search-results li {
+  padding: 0.5rem 0;
+  border-bottom: 1px dashed var(--border-color);
+}
+.search-results li:last-child {
+  border-bottom: none;
+}
+
+/* Loading indicator */
+.loading {
+  text-align: center;
+  padding: 1rem;
+  color: #777;
+}
+
+/* Badges (general styling) */
+.badge {
+  display: inline-block;
+  padding: .35em .65em; /* Bootstrap 5 like padding */
+  font-size: .75em;
+  font-weight: 700;
+  line-height: 1;
+  color: #fff;
+  text-align: center;
+  white-space: nowrap;
+  vertical-align: baseline;
+  border-radius: .25rem; /* Bootstrap 5 like radius */
+}
+/* Specific badge colors already defined (bg-info, bg-primary) */
+.bg-success { background-color: var(--success-color) !important; }
+.bg-danger { background-color: var(--danger-color) !important; }
+.bg-warning { background-color: var(--warning-color) !important; }
+.bg-secondary { background-color: #6c757d !important; }
+
+
+header {
+  flex-direction: column;
+  gap: 0.5rem;
+}
+nav ul {
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.profile-container {
+  grid-template-columns: 1fr; /* Stack profile sections */
+}
+.chat-container {
+  height: 60vh; /* Adjust chat height on smaller screens */
+}
+.row { /* For chat layout */
+  margin-right: 0;
+  margin-left: 0;
+}
+.col-md-9, .col-md-3 {
+  flex: 0 0 100%;
+  max-width: 100%;
+  padding-right: 0;
+  padding-left: 0;
+}
+.col-md-3 { /* Member list might need margin on top when stacked */
+  margin-top: 1.5rem;
+}
+
+@media (max-width: 576px) {
   .message {
-    margin-bottom: 1rem;
-    max-width: 80%;
+    max-width: 90%; /* Allow messages to take more width */
   }
-  
-  .message-outgoing {
-    align-self: flex-end;
-    background-color: var(--primary-color);
-    color: white;
-    border-radius: 18px 18px 4px 18px;
-    padding: 0.75rem 1rem;
-  }
-  
-  .message-incoming {
-    align-self: flex-start;
-    background-color: #e9eaed;
-    border-radius: 18px 18px 18px 4px;
-    padding: 0.75rem 1rem;
-  }
-  
-  .message-meta {
-    font-size: 0.75rem;
-    margin-top: 0.25rem;
-    opacity: 0.7;
-  }
-  
   .chat-form {
-    padding: 1rem;
-    background-color: #f1f1f1;
-    display: flex;
-    gap: 0.5rem;
+    flex-direction: column; /* Stack chat input and button */
   }
-  
-  .chat-form textarea {
-    flex: 1;
-    padding: 0.75rem;
-    border: 1px solid var(--border-color);
-    border-radius: 4px;
-    resize: none;
-    font-family: inherit;
+  .chat-form .btn {
+    width: 100%; /* Full width button */
   }
-  
-  /* Notification Styles */
-  .notifications-dropdown {
-    position: relative;
-    display: inline-block;
+  .project-feed-filters .form-row {
+    flex-direction: column;
   }
-  
-  .dropdown-btn {
-    background-color: transparent;
-    border: none;
-    color: white;
-    cursor: pointer;
-    font-size: 1.25rem;
-    display: flex;
-    align-items: center;
-  }
-  
-  .notification-count {
-    background-color: var(--danger-color);
-    color: white;
-    border-radius: 50%;
-    padding: 0.2rem 0.5rem;
-    font-size: 0.75rem;
-    margin-left: 0.25rem;
-  }
-  
-  .dropdown-content {
-    display: none;
-    position: absolute;
-    right: 0;
-    background-color: var(--card-color);
-    min-width: 300px;
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
-    z-index: 1;
-    border-radius: 4px;
-    max-height: 400px;
-    overflow-y: auto;
-  }
-  
-  .notification-item {
-    padding: 1rem;
-    border-bottom: 1px solid var(--border-color);
-  }
-  
-  .notification-item:last-child {
-    border-bottom: none;
-  }
-  
-  .notification-actions {
-    display: flex;
-    gap: 0.5rem;
-    margin-top: 0.5rem;
-  }
-  
-  .accept-btn, .reject-btn, .dismiss-btn {
-    padding: 0.25rem 0.5rem;
-    border-radius: 4px;
-    font-size: 0.75rem;
-    cursor: pointer;
-    border: none;
-  }
-  
-  .accept-btn {
-    background-color: var(--success-color);
-    color: white;
-  }
-  
-  .reject-btn {
-    background-color: var(--danger-color);
-    color: white;
-  }
-  
-  .dismiss-btn {
-    background-color: #f1f1f1;
-    margin-top: 0.5rem;
-  }
-  
-  /* Profile Styles */
-  .profile-container {
-    display: grid;
-    grid-template-columns: 1fr 2fr;
-    gap: 2rem;
-  }
-  
-  .profile-sidebar {
-    background-color: var(--card-color);
-    border-radius: 8px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    padding: 1.5rem;
-  }
-  
-  .profile-avatar {
-    width: 150px;
-    height: 150px;
-    border-radius: 50%;
-    margin: 0 auto 1rem;
-    display: block;
-    object-fit: cover;
-    border: 5px solid var(--primary-color);
-  }
-  
-  .profile-info h2 {
-    text-align: center;
-    margin-bottom: 1rem;
-  }
-  
-  .profile-main {
-    background-color: var(--card-color);
-    border-radius: 8px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    padding: 1.5rem;
-  }
-  
-  .achievements-section {
-    margin-top: 2rem;
-  }
-  
-  .achievements-section h3 {
-    margin-bottom: 1rem;
-    border-bottom: 1px solid var(--border-color);
-    padding-bottom: 0.5rem;
-  }
-  
-  .achievement-list {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-    gap: 1rem;
-  }
-  
-  .achievement-item {
-    text-align: center;
-    padding: 0.5rem;
-    border-radius: 8px;
-    background-color: #f1f1f1;
-  }
-  
-  .achievement-icon {
-    width: 50px;
-    height: 50px;
-    margin: 0 auto 0.5rem;
-  }
-  
-  .achievement-name {
-    font-weight: bold;
-    font-size: 0.875rem;
-  }
-  
-  /* Search Styles */
-  .search-form {
-    margin-bottom: 1.5rem;
-    display: flex;
-    gap: 0.5rem;
-  }
-  
-  .search-form input {
-    flex: 1;
-    padding: 0.75rem;
-    border: 1px solid var(--border-color);
-    border-radius: 4px;
-  }
-  
-  .search-results {
-    margin-top: 1.5rem;
-  }
-  
-  /* Loading indicator */
-  .loading {
-    text-align: center;
-    padding: 1rem;
-    color: #777;
-  }
-  
+}
+
+
+#notification-list {
+  color: var(--text-color);
+}
+
+#notification-list a {
+  color: var(--info-color);
+  padding: 0;
+}
+
+#notification-list p {
+  padding: 1em;
+}

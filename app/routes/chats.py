@@ -122,3 +122,80 @@ def invite_user(id, user_id):
     
     flash(f"Invitation sent to {user.username}.")
     return redirect(url_for('chats.view', id=chat.id))
+
+@chats_bp.route('/<int:chat_id>/leave')
+@login_required
+def leave_chat(chat_id):
+    chat = Chat.query.get_or_404(chat_id)
+    project = Project.query.get_or_404(chat.project_id) # Get project for context
+
+    if current_user not in chat.members:
+        flash("You are not a member of this chat.")
+        return redirect(url_for('projects.view', id=project.id)) # Redirect to project
+
+    # Chat creator cannot leave if they are the only admin of the chat (if chats had admins)
+    # For now, let's assume project admins manage chats.
+    # If chat creator is the only member, perhaps the chat should be deleted or archived (future feature).
+    # For now, allow leaving.
+
+    if current_user == chat.creator and len(chat.members) == 1:
+        # Allow leaving, flash a warning and delete the chat
+        flash("You are the only member of this chat. The chat will be deleted.")
+        db.session.delete(chat)
+        db.session.commit()
+        pass
+
+    chat.members.remove(current_user)
+    db.session.commit()
+    flash(f"You have left the chat '{chat.name}'.")
+
+
+    return redirect(url_for('projects.view', id=project.id))
+
+
+@chats_bp.route('/<int:chat_id>/kick/<int:user_id>')
+@login_required
+def kick_user_from_chat(chat_id, user_id):
+    chat = Chat.query.get_or_404(chat_id)
+    user_to_kick = User.query.get_or_404(user_id)
+    project = Project.query.get_or_404(chat.project_id)
+
+    # Authorization: Only project admins can kick from project chats
+    # Or, if chats had their own admins: if current_user is a chat admin
+    if current_user not in project.admins:
+        flash("You are not authorized to kick members from this chat.")
+        return redirect(url_for('chats.view', id=chat.id))
+
+    if user_to_kick not in chat.members:
+        flash(f"{user_to_kick.username} is not a member of this chat.")
+        return redirect(url_for('chats.view', id=chat.id))
+
+    if user_to_kick == current_user:
+        flash("You cannot kick yourself. Use the 'Leave Chat' option.")
+        return redirect(url_for('chats.view', id=chat.id))
+    
+    # Prevent kicking the chat creator by other project admins
+    if user_to_kick == chat.creator and current_user != chat.creator:
+         flash(f"The chat creator ({user_to_kick.username}) cannot be kicked by other admins.")
+         return redirect(url_for('chats.view', id=chat.id))
+
+
+    chat.members.remove(user_to_kick)
+    db.session.commit()
+    flash(f"{user_to_kick.username} has been kicked from the chat '{chat.name}'.")
+
+    # Notify the kicked user
+    kicked_user_notification = Notification(
+        user_id=user_to_kick.id,
+        sender_id=current_user.id,
+        notification_type='info',
+        info_type='kicked_from_chat',
+        text=f"You have been removed from the chat '{chat.name}' by {current_user.username}.",
+        chat_id=chat.id,
+        project_id=project.id
+    )
+    db.session.add(kicked_user_notification)
+    db.session.commit()
+    socketio.emit('new_notification', {'count': Notification.query.filter_by(user_id=user_to_kick.id, dismissed=False).count()}, room=f'user_{user_to_kick.id}')
+
+    return redirect(url_for('chats.view', id=chat.id))

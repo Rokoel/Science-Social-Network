@@ -4,29 +4,51 @@
 
 {% block content %}
 <div class="container">
-    <div class="chat-header-info">
-        <h1 class="page-title">{{ chat.name }}</h1>
-        <div class="chat-meta">
-            <span>Project: <a href="{{ url_for('projects.view', id=project.id) }}">{{ project.title }}</a></span>
-            <span>Members: {{ chat.members|length }}</span>
+    <div class="chat-header-info d-flex justify-content-between align-items-center">
+        <div>
+            <h1 class="page-title mb-0">{{ chat.name }}</h1>
+            <div class="chat-meta">
+                <span>Project: <a href="{{ url_for('projects.view', id=project.id) }}">{{ project.title }}</a></span>
+                <span>Creator: <a href="{{url_for('users.view_profile', user_id=chat.creator.id)}}">{{ chat.creator.username }}</a></span>
+                <span>Members: <span id="chatMemberCount">{{ chat.members|length }}</span></span>
+            </div>
+        </div>
+        <div>
+            {% if current_user in chat.members %}
+                <a href="{{ url_for('chats.leave_chat', chat_id=chat.id) }}" class="btn btn-sm btn-warning" onclick="return confirm('Are you sure you want to leave this chat?')">Leave Chat</a>
+            {% endif %}
         </div>
     </div>
     
     <div class="chat-container">
         <div class="chat-header">
-            <div class="d-flex justify-content-between align-items-center">
+            <div class="d-flex justify-content-between align-items-center"> {# Assuming you have some flex utility classes or custom CSS for this #}
                 <h3>Chat Messages</h3>
-                {% if current_user in project.admins %}
-                    <div class="dropdown">
-                        <button class="btn btn-secondary dropdown-toggle" type="button" id="memberActions" data-bs-toggle="dropdown" aria-expanded="false">
+                {% if current_user in project.admins %} {# Only project admins can invite to project chats #}
+                    <div class="custom-dropdown-container"> {# Renamed for clarity #}
+                        <button class="btn btn-secondary" type="button" id="inviteMemberBtn">
                             Invite Member
                         </button>
-                        <ul class="dropdown-menu" aria-labelledby="memberActions">
+                        <ul class="custom-dropdown-menu" id="inviteMemberList" style="display: none; position: absolute; background-color: #f9f9f9; min-width: 160px; box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2); z-index: 1; list-style-type: none; padding: 0; margin: 0;">
+                            {# Logic to find invitable members #}
+                            {% set invitable_members_list = [] %}
                             {% for member in project.members %}
-                                {% if member not in chat.members %}
-                                    <li><a class="dropdown-item" href="{{ url_for('chats.invite_user', id=chat.id, user_id=member.id) }}">{{ member.username }}</a></li>
+                                {% if member not in chat.members and member != current_user %}
+                                    {% set invitable_members_list = invitable_members_list.append(member) %}
                                 {% endif %}
                             {% endfor %}
+
+                            {% if invitable_members_list %}
+                                {% for member_to_invite in invitable_members_list %}
+                                    <li style="padding: 8px 12px; border-bottom: 1px solid #eee;">
+                                        <a class="dropdown-item-link" href="{{ url_for('chats.invite_user', id=chat.id, user_id=member_to_invite.id) }}" style="text-decoration: none; color: black; display: block;">
+                                            {{ member_to_invite.username }}
+                                        </a>
+                                    </li>
+                                {% endfor %}
+                            {% else %}
+                                <li style="padding: 8px 12px; color: #777;">No new project members to invite.</li>
+                            {% endif %}
                         </ul>
                     </div>
                 {% endif %}
@@ -88,6 +110,58 @@
                 </div>
                  <div id="form-errors" class="errors" style="display:none;"></div>
             </form>
+        </div>
+    </div>
+
+    <div class="col-md-3"> {# Chat members list #}
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                Chat Members
+                {% if current_user in project.admins %}
+                    <div class="custom-dropdown-container">
+                        <button class="btn btn-sm btn-outline-primary" type="button" id="inviteMemberBtn" title="Invite Project Members to this Chat">
+                            <i class="fas fa-user-plus"></i> Invite
+                        </button>
+                        <ul class="custom-dropdown-menu" id="inviteMemberList" style="display: none; position: absolute; background-color: #f9f9f9; min-width: 180px; box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2); z-index: 10; list-style-type: none; padding: 0; margin: 0; right: 0;">
+                            {% set invitable_members_list = [] %}
+                            {% for member in project.members %}
+                                {% if member not in chat.members and member != current_user %}
+                                    {% set invitable_members_list = invitable_members_list.append(member) %}
+                                {% endif %}
+                            {% endfor %}
+
+                            {% if invitable_members_list %}
+                                {% for member_to_invite in invitable_members_list %}
+                                    <li style="padding: 8px 12px; border-bottom: 1px solid #eee;">
+                                        <a class="dropdown-item-link" href="{{ url_for('chats.invite_user', id=chat.id, user_id=member_to_invite.id) }}" style="text-decoration: none; color: black; display: block;">
+                                            {{ member_to_invite.username }}
+                                        </a>
+                                    </li>
+                                {% endfor %}
+                            {% else %}
+                                <li style="padding: 8px 12px; color: #777;">No new project members to invite.</li>
+                            {% endif %}
+                        </ul>
+                    </div>
+                {% endif %}
+            </div>
+            <ul class="list-group list-group-flush" id="chatMemberListUL">
+                {% for member in chat.members|sort(attribute='username') %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <img src="{{ url_for('static', filename='uploads/' + member.avatar) }}" class="chat-avatar-small" alt="{{ member.username }}">
+                            <a href="{{ url_for('users.view_profile', user_id=member.id) }}">{{ member.username }}</a>
+                            {% if member == chat.creator %}<span class="badge bg-info text-dark ms-1">Creator</span>{% endif %}
+                            {% if member == current_user %}<span class="badge bg-primary ms-1">You</span>{% endif %}
+                        </div>
+                        {% if current_user in project.admins and member != current_user and member != chat.creator %} {# Project admins can kick, but not self or creator #}
+                            <a href="{{ url_for('chats.kick_user_from_chat', chat_id=chat.id, user_id=member.id) }}" class="btn btn-xs btn-danger" onclick="return confirm('Are you sure you want to remove {{ member.username }} from this chat?')" title="Remove from chat">
+                                <i class="fas fa-user-times"></i>
+                            </a>
+                        {% endif %}
+                    </li>
+                {% endfor %}
+            </ul>
         </div>
     </div>
     
@@ -238,6 +312,28 @@
         $(window).on('beforeunload', function() {
             socket.emit('leave_chat', { chat_id: chatId });
         });
+        const $inviteMemberBtn = $('#inviteMemberBtn');
+        const $inviteMemberList = $('#inviteMemberList');
+
+        if ($inviteMemberBtn.length && $inviteMemberList.length) {
+            $inviteMemberBtn.on('click', function(event) {
+                event.stopPropagation(); // Prevent click from bubbling up to document
+                $inviteMemberList.toggle();
+            });
+
+            // Hide dropdown if clicked outside
+            $(document).on('click', function(event) {
+                if (!$inviteMemberBtn.is(event.target) && $inviteMemberList.has(event.target).length === 0 && $inviteMemberList.is(':visible')) {
+                    $inviteMemberList.hide();
+                }
+            });
+
+            // Optional: If clicking an item should hide the dropdown
+            $inviteMemberList.on('click', '.dropdown-item-link', function() {
+                // The link will navigate, but if it were an AJAX action, you'd hide here:
+                // $inviteMemberList.hide(); 
+            });
+        }
     });
     </script>
 {% endblock %}
