@@ -24,34 +24,6 @@
         <div class="chat-header">
             <div class="d-flex justify-content-between align-items-center"> {# Assuming you have some flex utility classes or custom CSS for this #}
                 <h3>Chat Messages</h3>
-                {% if current_user in project.admins %} {# Only project admins can invite to project chats #}
-                    <div class="custom-dropdown-container"> {# Renamed for clarity #}
-                        <button class="btn btn-secondary" type="button" id="inviteMemberBtn">
-                            Invite Member
-                        </button>
-                        <ul class="custom-dropdown-menu" id="inviteMemberList" style="display: none; position: absolute; background-color: #f9f9f9; min-width: 160px; box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2); z-index: 1; list-style-type: none; padding: 0; margin: 0;">
-                            {# Logic to find invitable members #}
-                            {% set invitable_members_list = [] %}
-                            {% for member in project.members %}
-                                {% if member not in chat.members and member != current_user %}
-                                    {% set invitable_members_list = invitable_members_list.append(member) %}
-                                {% endif %}
-                            {% endfor %}
-
-                            {% if invitable_members_list %}
-                                {% for member_to_invite in invitable_members_list %}
-                                    <li style="padding: 8px 12px; border-bottom: 1px solid #eee;">
-                                        <a class="dropdown-item-link" href="{{ url_for('chats.invite_user', id=chat.id, user_id=member_to_invite.id) }}" style="text-decoration: none; color: black; display: block;">
-                                            {{ member_to_invite.username }}
-                                        </a>
-                                    </li>
-                                {% endfor %}
-                            {% else %}
-                                <li style="padding: 8px 12px; color: #777;">No new project members to invite.</li>
-                            {% endif %}
-                        </ul>
-                    </div>
-                {% endif %}
             </div>
         </div>
         
@@ -117,12 +89,13 @@
         <div class="card">
             <div class="card-header d-flex justify-content-between align-items-center">
                 Chat Members
-                {% if current_user in project.admins %}
-                    <div class="custom-dropdown-container">
-                        <button class="btn btn-sm btn-outline-primary" type="button" id="inviteMemberBtn" title="Invite Project Members to this Chat">
-                            <i class="fas fa-user-plus"></i> Invite
+                {% if current_user in project.admins %} {# Only project admins can invite to project chats #}
+                    <div class="custom-dropdown-container"> {# Renamed for clarity #}
+                        <button class="btn btn-primary" type="button" id="inviteMemberBtn">
+                            Invite Member
                         </button>
-                        <ul class="custom-dropdown-menu" id="inviteMemberList" style="display: none; position: absolute; background-color: #f9f9f9; min-width: 180px; box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2); z-index: 10; list-style-type: none; padding: 0; margin: 0; right: 0;">
+                        <ul class="custom-dropdown-menu" id="inviteMemberList" style="display: none; position: absolute; background-color: #f9f9f9; min-width: 160px; box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2); z-index: 1; list-style-type: none; padding: 0; margin: 0;">
+                            {# Logic to find invitable members #}
                             {% set invitable_members_list = [] %}
                             {% for member in project.members %}
                                 {% if member not in chat.members and member != current_user %}
@@ -156,7 +129,7 @@
                         </div>
                         {% if current_user in project.admins and member != current_user and member != chat.creator %} {# Project admins can kick, but not self or creator #}
                             <a href="{{ url_for('chats.kick_user_from_chat', chat_id=chat.id, user_id=member.id) }}" class="btn btn-xs btn-danger" onclick="return confirm('Are you sure you want to remove {{ member.username }} from this chat?')" title="Remove from chat">
-                                <i class="fas fa-user-times"></i>
+                                Remove user
                             </a>
                         {% endif %}
                     </li>

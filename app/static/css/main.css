@@ -829,13 +829,6 @@ footer {
   margin-bottom: 0.5rem; /* Spacing for profile details */
 }
 
-.profile-main {
-  /* background-color: var(--card-color); */ /* Already a card */
-  /* border-radius: 8px; */
-  /* box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); */
-  /* padding: 1.5rem; */ /* Card-body will handle this */
-}
-
 .achievements-section {
   margin-top: 2rem;
 }
@@ -1008,4 +1001,9 @@ nav ul {
 
 #notification-list p {
   padding: 1em;
+}
+
+ul#chatMemberListUL div {
+  display: flex;
+  align-items: center;
 }
