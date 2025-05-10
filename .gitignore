@@ -4,6 +4,7 @@ app.db
 
 app/static/uploads/*
 !app/static/uploads/.gitkeep
+!app/static/uploads/default-avatar.svg
 
 *.rdb
 dump.rdb
