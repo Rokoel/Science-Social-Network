@@ -198,11 +198,14 @@ footer {
 }
 
 .form-control {
-  width: 100%;
   padding: 0.75rem;
   border: 1px solid var(--border-color);
   border-radius: 4px;
   font-size: 1rem;
+}
+
+.form-control#text {
+  min-width: 30vw;
 }
 
 .form-control:focus {
@@ -513,21 +516,33 @@ footer {
   margin-right: 0;
 }
 
-.chat-container { /* This is now for the message area specifically if using row/col */
+.chat-container {
   display: flex;
   flex-direction: column;
-  height: 70vh; /* Or adjust as needed */
+  height: 100vh;
   background-color: var(--card-color);
   border-radius: 8px;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
   overflow: hidden;
 }
 
+.form-row {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  flex-direction: row;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.form-row > * {
+  flex: 1;
+}
+
 .chat-header { /* This is the header within the chat message area */
   padding: 1rem;
   background-color: #f1f1f1; /* Lighter header for message area */
   border-bottom: 1px solid var(--border-color);
-  color: var(--text-color); /* Adjust if needed */
+  color: var(--text-color);
 }
 .chat-header h3 {
   margin: 0;
@@ -644,6 +659,7 @@ footer {
   overflow-y: auto;
   display: flex;
   flex-direction: column-reverse; /* This keeps new messages at the bottom */
+  overflow-x: hidden;
 }
 
 .message {
@@ -652,6 +668,9 @@ footer {
   padding: 0.75rem 1rem; /* Moved padding here */
   border-radius: 18px; /* Base radius */
   line-height: 1.4; /* Improved readability */
+}
+.message-body p {
+  word-break: break-all;
 }
 
 .message-outgoing {
@@ -682,12 +701,12 @@ footer {
   gap: 0.75rem; /* Increased gap */
   border-top: 1px solid var(--border-color);
 }
+.chat-form #message-form {
+  width: 100%;  
+}
 
 .chat-form .form-control { /* Target textarea/inputs within chat-form */
   flex: 1;
-  /* padding: 0.75rem; */ /* Already defined in .form-control */
-  /* border: 1px solid var(--border-color); */
-  /* border-radius: 4px; */
   resize: none;
   font-family: inherit;
 }
@@ -722,7 +741,9 @@ footer {
   margin-left: 0.35rem; /* Adjusted margin */
   line-height: 1; /* Ensure text is centered */
   min-width: 18px; /* Ensure it's somewhat circular even with 1 digit */
+  min-height: 18px;
   text-align: center;
+  align-content: center;
 }
 
 .dropdown-content {
@@ -957,9 +978,6 @@ nav ul {
 .profile-container {
   grid-template-columns: 1fr; /* Stack profile sections */
 }
-.chat-container {
-  height: 60vh; /* Adjust chat height on smaller screens */
-}
 .row { /* For chat layout */
   margin-right: 0;
   margin-left: 0;
@@ -978,10 +996,10 @@ nav ul {
   .message {
     max-width: 90%; /* Allow messages to take more width */
   }
-  .chat-form {
+  .form-row {
     flex-direction: column; /* Stack chat input and button */
   }
-  .chat-form .btn {
+  .form-row > * {
     width: 100%; /* Full width button */
   }
   .project-feed-filters .form-row {
@@ -1017,13 +1035,21 @@ ul#chatMemberListUL div {
   position: relative; /* For absolute positioning of the dropdown */
   display: flex; /* Or inline-flex if preferred */
   align-items: center;
-  margin-right: 1rem;
 }
 
 .nav-search-form {
   display: flex;
   align-items: center;
-  /* remove margin-right if handled by container */
+  width: 100%;
+}
+
+.nav-search-form input[type="text"] {
+  flex: 1;
+  padding: 0.5rem;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  font-size: 1rem;
+  width: 100%; /* Full width */
 }
 
 /* input and button styles already defined */
@@ -1076,4 +1102,21 @@ ul#chatMemberListUL div {
 }
 .search-results-dropdown li .text-danger {
     color: var(--danger-color);
+}
+
+.form-check .text-muted {
+  margin-left: 0.5rem;
+}
+
+.list-group-item > div {
+  display: flex;
+  align-items: center;
+}
+
+.pagination {
+  margin-top: 2em;
+}
+
+.card-body .form-control {
+  width: 100%;
 }

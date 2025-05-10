@@ -15,10 +15,7 @@
         </div>
         <div class="chat-actions-top">
             {% if current_user.id == chat.creator_id or current_user in project.admins %}
-                 <form action="{{ url_for('chats.delete_chat', chat_id=chat.id) }}" method="POST" style="display: inline-block; margin-left: 10px;" onsubmit="return confirm('Are you sure you want to delete this chat and all its messages? This cannot be undone.');">
-                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                    <button type="submit" class="btn btn-sm btn-danger">Delete Chat</button>
-                </form>
+                <a href="{{ url_for('chats.delete_chat', chat_id=chat.id) }}" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete this chat and all its messages? This cannot be undone.');">Delete Chat</a>
             {% endif %}
             {% if current_user in chat.members %}
                 <a href="{{ url_for('chats.leave_chat', chat_id=chat.id) }}" class="btn btn-sm btn-warning" onclick="return confirm('Are you sure you want to leave this chat?')">Leave Chat</a>
@@ -76,15 +73,9 @@
             <form method="POST" enctype="multipart/form-data" id="message-form">
                 {{ form.hidden_tag() }}
                 <div class="form-row">
-                    <div class="form-group col-md-8">
                         {{ form.text(class="form-control", placeholder="Type a message...", rows=2) }} {# Let WTForms handle the ID #}
-                    </div>
-                    <div class="form-group col-md-3">
                         {{ form.file(class="form-control", id="message_file_input") }} {# Keep custom ID for file if preferred, or use {{ form.file.id }} #}
-                    </div>
-                    <div class="form-group col-md-1">
                         {{ form.submit(class="btn btn-primary", id="send_message_btn") }}
-                    </div>
                 </div>
                  <div id="form-errors" class="errors" style="display:none;"></div>
             </form>

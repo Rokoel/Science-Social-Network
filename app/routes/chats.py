@@ -200,7 +200,7 @@ def kick_user_from_chat(chat_id, user_id):
 
     return redirect(url_for('chats.view', id=chat.id))
 
-@chats_bp.route('/<int:chat_id>/delete', methods=['POST'])
+@chats_bp.route('/<int:chat_id>/delete', methods=['GET', 'POST'])
 @login_required
 def delete_chat(chat_id):
     chat = Chat.query.get_or_404(chat_id)
