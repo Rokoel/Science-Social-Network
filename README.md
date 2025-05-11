@@ -1,7 +1,7 @@
 # Installation Instructions
 ## Windows Installation
 ### Prerequisites
-- Python 3.7 or higher
+- Python 3.8.10 or higher
 - Git
 - Internet connection
 ### Step 1: Clone the Repository
