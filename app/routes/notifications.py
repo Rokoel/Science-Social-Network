@@ -73,7 +73,6 @@ def accept(id):
         try:
             if current_user not in chat.members:
                 chat.members.append(current_user)
-                current_app.logger.info(f"ACCEPT: User {current_user.id} added to chat {chat.id} members.")
             
             notification.status = 'accepted'
             notification.dismissed = True
@@ -92,13 +91,11 @@ def accept(id):
                         chat_id=chat.id, project_id=chat.project_id
                     )
                     db.session.add(accepted_noti_to_inviter)
-                    current_app.logger.info(f"ACCEPT: Queued 'chat_invite_accepted_by_user' notif for inviter {original_inviter.id}.")
                 else:
                     current_app.logger.warning(f"ACCEPT: Original inviter (ID: {notification.sender_id}) not found for chat invite acceptance.")
             
             db.session.commit() # Commit all changes for this block
             success = True
-            current_app.logger.info(f"ACCEPT: DB commit successful for chat invite {id}.")
             response_data = {'success': True, 'redirect': redirect_url_val}
 
             # Emit socket event after successful commit and response prep
@@ -188,12 +185,10 @@ def reject(id):
                         chat_id=notification.chat_id, project_id=chat.project_id if chat else None
                     )
                     db.session.add(rejected_noti_to_inviter)
-                    current_app.logger.info(f"REJECT: Queued 'chat_invite_rejected_by_user' notif for inviter {original_inviter.id}.")
                 else:
                     current_app.logger.warning(f"REJECT: Original inviter (ID: {notification.sender_id}) not found for chat invite rejection.")
             
             db.session.commit()
-            current_app.logger.info(f"REJECT: DB commit successful for chat invite {id}.")
             response_data = {'success': True}
 
             if notification.sender_id and notification.sender_id != current_user.id and original_inviter:

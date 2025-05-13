@@ -23,7 +23,6 @@ def handle_disconnect():
 
 @socketio.on('join_chat')
 def handle_join_chat(data):
-    current_app.logger.info(f"join_chat: {data}")
     chat_id = data.get('chat_id')
     
     if not current_user.is_authenticated or not chat_id:
@@ -50,7 +49,6 @@ def handle_leave_chat(data):
 
 @socketio.on('send_message')
 def handle_send_message(data):
-    current_app.logger.info(f"send_message: {data}")
     if not current_user.is_authenticated:
         emit('error', {'message': 'Authentication required'})
         return
@@ -93,7 +91,6 @@ def handle_send_message(data):
             # Optionally, do not proceed with message saving if file upload is critical and failed
             # return 
     
-    current_app.logger.info(f"User {current_user.username} sent message to chat {chat_id}: {text}")
     message = Message(
         text=text if text else None, # Store None if text is empty
         user_id=current_user.id,

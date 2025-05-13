@@ -18,26 +18,17 @@ venv\Scripts\activate
 ```text
 pip install -r requirements.txt
 ```
-### Step 4: Set Up Redis
-Download Redis for Windows from https://github.com/tporadowski/redis/releases
-Extract the zip file to a location on your computer
-Open Command Prompt and navigate to the Redis folder
-Run Redis server:
-```text
-redis-server.exe
-```
-Keep this window open while running the application.
 
-### Step 5: Initialize the Application
+### Step 4: Initialize the Application
 ```text
 python -c "from app import create_app, db; app = create_app(); app.app_context().push(); db.create_all()"
 ```
-### Step 6: Run the Application
+### Step 5: Run the Application Without Redis
 Open a new Command Prompt window, navigate to the project folder, activate the virtual environment, and run:
 
 ```text
 venv\Scripts\activate
-python run.py
+python run.py --no-redis
 ```
 
 The application will be accessible at http://localhost:5000 in your web browser.
@@ -83,6 +74,8 @@ python -c "from app import create_app, db; app = create_app(); app.app_context()
 ### Step 6: Run the Application
 ```bash
 python run.py
+# if running without redis:
+python run.py --no-redis
 ```
 The application will be accessible at http://localhost:5000 in your web browser.
 

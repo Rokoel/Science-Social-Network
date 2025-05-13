@@ -1117,6 +1117,6 @@ ul#chatMemberListUL div {
   margin-top: 2em;
 }
 
-.card-body .form-control {
+.card-body .form-control, .auth-card .form-control {
   width: 100%;
 }

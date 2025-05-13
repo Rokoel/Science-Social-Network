@@ -462,7 +462,6 @@ def delete_project(id):
         db.session.delete(project)
         db.session.commit()
         flash(f"Project '{project.title}' and all its associated chats and data have been deleted.")
-        current_app.logger.info(f"Project {id} deleted by user {current_user.id}")
         return redirect(url_for('projects.feed'))
     except Exception as e:
         db.session.rollback()

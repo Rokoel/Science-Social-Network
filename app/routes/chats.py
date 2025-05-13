@@ -224,7 +224,6 @@ def delete_chat(chat_id):
         db.session.delete(chat)
         db.session.commit()
         flash(f"Chat '{chat.name}' has been deleted.")
-        current_app.logger.info(f"Chat {chat_id} deleted by user {current_user.id}")
         return redirect(url_for('projects.view', id=project.id))
     except Exception as e:
         db.session.rollback()

@@ -1,10 +1,11 @@
-import eventlet
+import eventlet, sys
 eventlet.monkey_patch()
 
-# Then the rest of your imports
 from app import create_app, socketio
 
-app = create_app()
+use_redis = '--no-redis' not in sys.argv
+
+app = create_app(use_redis=use_redis)
 
 if __name__ == '__main__':
     socketio.run(app, debug=True)

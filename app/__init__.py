@@ -1,4 +1,3 @@
-# In app/__init__.py
 import os
 from flask import Flask
 from flask_socketio import SocketIO
@@ -17,48 +16,50 @@ socketio = SocketIO()
 login_manager = LoginManager()
 csrf = CSRFProtect()
 redis_client = None
-limiter = Limiter(key_func=get_remote_address,
-                  storage_uri="redis://localhost:6379")
+limiter = Limiter(key_func=get_remote_address)
 
-def create_app(config_class='config.Config'):
+def create_app(config_class='config.Config', use_redis=True):
     app = Flask(__name__)
     app.config.from_object(config_class)
 
     if app.debug:
-        # In debug mode, set level to DEBUG for more verbosity
-        # This will show INFO, WARNING, ERROR, CRITICAL, and DEBUG messages
         logging.basicConfig(level=logging.DEBUG)
         app.logger.setLevel(logging.DEBUG)
     else:
-        # In production, you might want INFO or WARNING
         logging.basicConfig(level=logging.INFO)
         app.logger.setLevel(logging.INFO)
     
     app.logger.info("Flask App Logger initialized.")
     
-    # Initialize Redis client
     global redis_client
-    redis_url = app.config['REDIS_URL']
-    redis_client = redis.from_url(redis_url)
+
+    if use_redis:
+        redis_url = app.config.get('REDIS_URL', 'redis://localhost:6379')
+        redis_client = redis.from_url(redis_url)
+        limiter._storage_uri = redis_url
+        socketio_kwargs = {
+            'message_queue': redis_url,
+            'cors_allowed_origins': "*",
+            'max_http_buffer_size': 10 * 1024 * 1024
+        }
+    else:
+        redis_client = None
+        limiter._storage_uri = None  # Use in-memory storage
+        socketio_kwargs = {
+            'cors_allowed_origins': "*",
+            'max_http_buffer_size': 10 * 1024 * 1024
+        }
     
     # Initialize extensions with app
     db.init_app(app)
     csrf.init_app(app)
     login_manager.init_app(app)
-    
-    # Set login view
     login_manager.login_view = 'auth.login'
-    
-    # Configure limiter with storage and app
-    limiter.storage_uri = redis_url
     limiter.init_app(app)
+    app.logger.info(f'Using the following type of storage: {limiter.storage}')
+    socketio.init_app(app, **socketio_kwargs)
     
-    # Initialize SocketIO
-    socketio.init_app(app, message_queue=redis_url, cors_allowed_origins="*", max_http_buffer_size=10 * 1024 * 1024)
-    
-    # Ensure upload directory exists
     os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
-
     os.makedirs(os.path.join(app.static_folder, 'achievements_icons'), exist_ok=True)
 
     from app.utils import nl2br
@@ -85,8 +86,7 @@ def create_app(config_class='config.Config'):
 
     from . import sockets
 
-    # Create database tables
     with app.app_context():
         db.create_all()
-    
+
     return app
