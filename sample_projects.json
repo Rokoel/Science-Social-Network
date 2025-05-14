@@ -1,0 +1,42 @@
+[
+  {
+    "title": "AI for Healthcare",
+    "description": "Using machine learning to predict patient outcomes and optimize treatments.",
+    "goals": "Develop a predictive model for hospital readmission.",
+    "tags": ["AI", "Python", "Data Analysis", "Healthcare"],
+    "project_type": "Research",
+    "is_public": true
+  },
+  {
+    "title": "Quantum Chemistry Simulator",
+    "description": "Simulate molecular interactions using quantum computing.",
+    "goals": "Build a prototype quantum chemistry engine.",
+    "tags": ["Quantum Computing", "Chemistry", "Simulation"],
+    "project_type": "Experiment",
+    "is_public": true
+  },
+  {
+    "title": "Ecology Field Survey",
+    "description": "A collaborative project to survey local biodiversity.",
+    "goals": "Map species diversity in a local park.",
+    "tags": ["Ecology", "Survey", "Biology"],
+    "project_type": "Survey",
+    "is_public": true
+  },
+  {
+    "title": "Neuroscience Data Analysis",
+    "description": "Analyze open-access brain imaging datasets.",
+    "goals": "Find new patterns in fMRI data.",
+    "tags": ["Neuroscience", "Data Analysis", "Python"],
+    "project_type": "Collaboration",
+    "is_public": true
+  },
+  {
+    "title": "Bioinformatics Pipeline",
+    "description": "Automate DNA sequence analysis for research labs.",
+    "goals": "Create a user-friendly pipeline for sequence alignment.",
+    "tags": ["Bioinformatics", "Python", "Automation"],
+    "project_type": "Research",
+    "is_public": true
+  }
+]

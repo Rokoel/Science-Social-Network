@@ -7,13 +7,19 @@
     <h1 class="page-title">Edit Project: {{ project.title }}</h1>
 
     <div class="card">
-        <div class="card-header">Update Project Details</div>
+        <h3 class="card-header">Update Project Details</h3>
+        {% if project.image %}
+            <div class="project-image-container" style="text-align:center; margin-bottom:1rem;">
+                <img src="{{ url_for('static', filename='uploads/' + project.image) }}" alt="Current Project Image" style="max-width: 100%; max-height: 300px; border-radius: 8px;">
+                <p class="text-muted">Current image. Upload a new one to replace.</p>
+            </div>
+        {% endif %}
         <div class="card-body">
             <form method="POST" action="" enctype="multipart/form-data">
                 {{ form.hidden_tag() }}
 
                 <div class="form-group">
-                    {{ form.title.label }}
+                    <strong>{{ form.title.label }}</strong>
                     {{ form.title(class="form-control", value=project.title) }}
                     {% if form.title.errors %}
                         <div class="errors">
@@ -25,7 +31,7 @@
                 </div>
 
                 <div class="form-group">
-                    {{ form.description.label }}
+                    <strong>{{ form.description.label }}</strong>
                     {{ form.description(class="form-control", rows=5) }} {# Value will be pre-filled by form.description.data in the route #}
                     {% if form.description.errors %}
                         <div class="errors">
@@ -37,7 +43,7 @@
                 </div>
 
                 <div class="form-group">
-                    {{ form.goals.label }}
+                    <strong>{{ form.goals.label }}</strong>
                     {{ form.goals(class="form-control", rows=3) }} {# Value will be pre-filled by form.goals.data in the route #}
                     {% if form.goals.errors %}
                         <div class="errors">
@@ -49,17 +55,18 @@
                 </div>
 
                 <div class="form-group">
-                    {{ form.tags.label }}
+                    <strong>{{ form.tags.label }}</strong>
+                    <br>
                     {% for value, label in form.tags.choices %}
-                        <label>
-                            <input type="checkbox" name="{{ form.tags.name }}" value="{{ value }}"
+                        <label class="tinder-tag tag-badge {% if value in form.tags.data %}tag-badge-active{% endif %}">
+                            <input type="checkbox" name="{{ form.tags.name }}" value="{{ value }}" style="opacity: 0; position: absolute;"
                                 {% if value in form.tags.data %}checked{% endif %}>
                             {{ label }}
                         </label>
                     {% endfor %}
                 </div>
                 <div class="form-group">
-                    {{ form.image.label }}
+                    <strong>{{ form.image.label }}</strong>
                     {{ form.image(class="form-control") }}
                     {% if form.image.errors %}
                         <div class="errors">
@@ -71,7 +78,7 @@
                 </div>
 
                 <div class="form-group">
-                    {{ form.deadline_date.label }}
+                    <strong>{{ form.deadline_date.label }}</strong>
                     {{ form.deadline_date(class="form-control", type="text", placeholder="DD/MM/YYYY") }}
                     <small class="text-muted">Format: DD/MM/YYYY (e.g., 31/12/2025)</small>
                     {% if form.deadline_date.errors %}
@@ -79,7 +86,7 @@
                     {% endif %}
                 </div>
                 <div class="form-group">
-                    {{ form.deadline_time.label }}
+                    <strong>{{ form.deadline_time.label }}</strong>
                     {{ form.deadline_time(class="form-control", type="text", placeholder="HH:MM") }}
                     <small class="text-muted">Format: HH:MM (e.g., 14:30 or leave blank for start of day)</small>
                     {% if form.deadline_time.errors %}
@@ -88,7 +95,7 @@
                 </div>
 
                 <div class="form-group">
-                    {{ form.project_type.label }}
+                    <strong>{{ form.project_type.label }}</strong>
                     {{ form.project_type(class="form-control", value=project.project_type) }}
                     {% if form.project_type.errors %}
                         <div class="errors">
@@ -113,4 +120,21 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.tag-badge').forEach(function(tag) {
+            tag.addEventListener('click', function(event) {
+                event.preventDefault();
+                tag.classList.toggle('tag-badge-active');
+                const checkbox = tag.querySelector('input[type="checkbox"]');
+                if (checkbox) {
+                    checkbox.checked = !checkbox.checked;
+                }
+            });
+        });
+    });
+</script>
 {% endblock %}

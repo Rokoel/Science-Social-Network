@@ -4,7 +4,7 @@ from app import db, limiter, socketio
 from app.models import Project, User, Chat, Notification, chat_members
 from app.forms import ProjectForm, SearchForm, EditProjectForm
 from app.utils import load_tags
-from datetime import datetime, time
+from datetime import datetime, time, timedelta
 from sqlalchemy import or_, and_, func
 from werkzeug.utils import secure_filename
 import os
@@ -25,7 +25,12 @@ def combine_date_time(date_obj, time_obj):
         return datetime.combine(date_obj, time_obj)
     elif date_obj: # If only date is provided, set time to end of day (23:59:59) or start (00:00:00)
         return datetime.combine(date_obj, time.min) # Or time.max for end of day
-    return None
+    elif time_obj: # If only time is provided, set date to 100 years from now
+        date_100_years_later = datetime.now().date() + timedelta(days=365 * 100)
+        return datetime.combine(date_100_years_later, time_obj)
+    else:
+        # If neither date nor time is provided, return a date 100 years from now with time set to 00:00:00
+        return datetime.now() + timedelta(days=365 * 100)
 
 @projects_bp.route('/feed')
 @login_required
@@ -75,6 +80,53 @@ def feed():
                            has_next=has_next,
                            total=total,
                            user_applied_projects=user_applied_projects)
+
+@projects_bp.route('/feed_ajax')
+@login_required
+def feed_ajax():
+    # Get offset and limit from query params
+    offset = request.args.get('offset', 0, type=int)
+    limit = request.args.get('limit', 5, type=int)
+
+    # Get all public projects except those user is already a member of
+    projects = Project.query.filter(
+        Project.is_public == True,
+        ~Project.members.any(User.id == current_user.id)
+    ).all()
+
+    # Score and sort as before
+    scored_projects = []
+    for project in projects:
+        score = project_match_score(current_user, project)
+        has_image = bool(project.image)
+        scored_projects.append((score, has_image, project.created_at, project))
+
+    scored_projects.sort(key=lambda x: (-x[0], -x[1], -x[2].timestamp()))
+    total = len(scored_projects)
+    paginated_projects = [p[-1] for p in scored_projects[offset:offset+limit]]
+
+    # Prepare JSON
+    result = []
+    for project in paginated_projects:
+        result.append({
+            'id': project.id,
+            'title': project.title,
+            'description': project.description,
+            'goals': project.goals,
+            'tags': project.tags,
+            'creator': {
+                'id': project.creator.id,
+                'username': project.creator.username
+            },
+            'deadline': project.deadline.strftime('%d/%m/%Y') if project.deadline else None,
+            'image': url_for('static', filename='uploads/' + project.image) if project.image else None,
+            'apply_url': url_for('projects.apply', id=project.id),
+            'view_url': url_for('projects.view', id=project.id)
+        })
+    return jsonify({
+        'projects': result,
+        'total': total
+    })
 
 @projects_bp.route('/create', methods=['GET', 'POST'])
 @login_required

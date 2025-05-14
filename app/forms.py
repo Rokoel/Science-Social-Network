@@ -65,8 +65,8 @@ class ProjectForm(FlaskForm):
     description = TextAreaField('Description', validators=[DataRequired()])
     goals = TextAreaField('Goals', validators=[DataRequired()])
     tags = SelectMultipleField('Project Tags', choices=[], coerce=str)
-    image = FileField('Project Image', validators=[FileAllowed(['jpg', 'jpeg', 'png', 'gif'])])
-    deadline_date = DateField('Deadline Date', format='%d/%m/%Y', validators=[DataRequired()])
+    image = FileField('Project Image', validators=[FileAllowed(['jpg', 'jpeg', 'png', 'gif', 'svg'])])
+    deadline_date = DateField('Deadline Date', format='%d/%m/%Y', validators=[Optional()])
     deadline_time = TimeField('Deadline Time (Optional, 24hr format HH:MM)', format='%H:%M', validators=[Optional()])
     project_type_choices = [
         ("Project", "Project"),
@@ -87,8 +87,8 @@ class EditProjectForm(FlaskForm):
     description = TextAreaField('Description', validators=[DataRequired()])
     goals = TextAreaField('Goals', validators=[DataRequired()])
     tags = SelectMultipleField('Project Tags', choices=[], coerce=str)
-    image = FileField('Project Image', validators=[FileAllowed(['jpg', 'jpeg', 'png', 'gif'])])
-    deadline_date = DateField('Deadline Date', format='%d/%m/%Y', validators=[DataRequired()])
+    image = FileField('Project Image', validators=[FileAllowed(['jpg', 'jpeg', 'png', 'gif', 'svg'])])
+    deadline_date = DateField('Deadline Date', format='%d/%m/%Y', validators=[Optional()])
     deadline_time = TimeField('Deadline Time (Optional, 24hr format HH:MM)', format='%H:%M', validators=[Optional()])
     project_type_choices = [
         ("Project", "Project"),

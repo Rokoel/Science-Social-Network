@@ -44,6 +44,9 @@ a:hover {
 .justify-content-between {
   justify-content: space-between !important;
 }
+.justify-items-center {
+  justify-items: center !important;
+}
 .align-items-center {
   align-items: center !important;
 }
@@ -463,9 +466,12 @@ footer {
   display: flex;
   justify-content: space-between; /* Keep this if you have multiple actions */
   margin-top: auto; /* Push actions to the bottom */
+  flex-wrap: wrap;
 }
 .project-actions .btn { /* Ensure buttons in actions don't overstretch */
-  flex-grow: 0;
+  flex: 1;
+  min-width: max-content; /* Prevent buttons from stretching */
+  margin: 0.5rem;
 }
 
 .project-meta {
@@ -1119,4 +1125,62 @@ ul#chatMemberListUL div {
 
 .card-body .form-control, .auth-card .form-control {
   width: 100%;
+}
+
+.project-image-container {
+  flex: 1;
+  min-width: 200px;
+  margin-bottom: 2rem;
+  margin-top: 2rem;
+  /* max-width: 200px; */
+  max-height: 80%;
+}
+.project-image-container img {
+  max-width: 80%;
+  max-height: 80%;
+  border-radius: 8px;
+  object-fit: cover; /* Ensure image fits well */
+  margin: 0 auto; /* Center image */
+  display: block; /* Center image */
+  border: 1px solid var(--border-color); /* Optional border */
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Optional shadow */
+}
+.project-header-text-container {
+  flex: 2;
+  min-width: fit-content;
+}
+
+.project-header-text-container h1 {
+  margin-bottom: 2rem;
+}
+
+.wrap {
+  flex-wrap: wrap;
+}
+.wrap-reverse {
+  flex-wrap: wrap-reverse;
+}
+
+.tinder-tag {
+  display: inline-block;
+  background: var(--primary-color);
+  color: #fff;
+  border-radius: 12px;
+  padding: 0.25em 0.75em;
+  font-size: 0.9em;
+  margin-right: 0.5em;
+  margin-bottom: 0.5em;
+}
+
+.tag-badge-active {
+  background: var(--success-color, #2ecc71);
+  color: #fff;
+}
+
+.card-body > p {
+  margin-bottom: 1rem;
+}
+.tag-list {
+  margin-top: 1rem;
+  margin-bottom: 1rem;
 }

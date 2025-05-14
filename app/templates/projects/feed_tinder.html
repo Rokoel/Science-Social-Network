@@ -1,63 +1,12 @@
 {% extends "base.html" %}
-
 {% block title %}Project Feed{% endblock %}
 
 {% block content %}
 <div class="tinder-feed-container">
-    {% if not projects %}
-        <div class="tinder-no-projects">
-            <h2>No more projects to show!</h2>
-            <p>Try updating your tags or check back later.</p>
-        </div>
-    {% else %}
-        <div class="tinder-card-stack">
-            {% for project in projects %}
-                <div class="tinder-card">
-                    {% if project.image %}
-                        <div class="tinder-card-image" style="background-image: url('{{ url_for('static', filename='uploads/' + project.image) }}');"></div>
-                    {% else %}
-                        <div class="tinder-card-image generic">
-                            <img src="{{ url_for('static', filename='uploads/generic_project.svg') }}" alt="Generic Project">
-                        </div>
-                    {% endif %}
-                    <div class="tinder-card-content">
-                        <h2 class="tinder-project-title">{{ project.title }}</h2>
-                        <div class="tinder-project-tags">
-                            {% for tag in project.tags %}
-                                <span class="tinder-tag">{{ tag }}</span>
-                            {% endfor %}
-                        </div>
-                        <p class="tinder-project-description">{{ project.description }}</p>
-                        <h4>Goals</h4>
-                        <p class="tinder-project-goals">{{ project.goals }}</p>
-                        <div class="tinder-project-meta">
-                            <span>By <a href="{{ url_for('users.view_profile', user_id=project.creator.id) }}">{{ project.creator.username }}</a></span>
-                            <span>Deadline: {{ project.deadline.strftime('%d/%m/%Y') if project.deadline else 'N/A' }}</span>
-                        </div>
-                        <div class="tinder-card-actions">
-                            {% if current_user in project.members %}
-                                <button class="btn btn-secondary btn-lg" disabled>Already a Member</button>
-                            {% elif current_user in project.admins %}
-                                <button class="btn btn-secondary btn-lg" disabled>Admin</button>
-                            {% elif project in user_applied_projects %}
-                                <button class="btn btn-warning btn-lg" disabled>Application Pending</button>
-                            {% else %}
-                                <a href="{{ url_for('projects.apply', id=project.id) }}" class="btn btn-success btn-lg">Apply</a>
-                            {% endif %}
-                        </div>
-                    </div>
-                </div>
-            {% endfor %}
-        </div>
-        <div class="tinder-feed-nav">
-            {% if has_prev %}
-                <a href="{{ url_for('projects.feed', page=page-1) }}" class="btn btn-secondary btn-lg" id="tinder-prev-btn">Previous</a>
-            {% endif %}
-            {% if has_next %}
-                <a href="{{ url_for('projects.feed', page=page+1) }}" class="btn btn-primary btn-lg" id="tinder-next-btn">Next</a>
-            {% endif %}
-        </div>
-    {% endif %}
+    <div id="tinder-card-stack"></div>
+    <div id="tinder-feed-loader" style="text-align:center; display:none; margin:2rem 0;">
+        <span>Loading more projects...</span>
+    </div>
 </div>
 {% endblock %}
 
@@ -171,50 +120,145 @@
 
 {% block scripts %}
 <script>
+const PROJECTS_PER_LOAD = 3;
+let loadedProjects = [];
+let loading = false;
+let offset = 0;
+let totalProjects = null;
+let currentIndex = 0;
+
+function renderProjectCard(project, index) {
+    let tagsHtml = '';
+    if (project.tags && project.tags.length) {
+        tagsHtml = project.tags.map(tag => `<span class="tinder-tag">${tag}</span>`).join(' ');
+    }
+    let imageHtml = '';
+    if (project.image) {
+        console.log(project);
+        if (project.image.includes('.svg')) {
+            imageHtml = `<div class="tinder-card-image generic">
+                            <img src="${project.image}" alt="${project.title}">
+                        </div>`;
+        } else {
+            imageHtml = `<div class="tinder-card-image" style="background-image: url('${project.image}');">
+                        </div>`;
+            }
+    } else {
+        imageHtml = `<div class="tinder-card-image generic">
+                        <img src="{{ url_for('static', filename='uploads/default-project.svg') }}" alt="Generic Project">
+                    </div>`;
+    }
+    return `
+    <div class="tinder-card" data-index="${index}">
+        ${imageHtml}
+        <div class="tinder-card-content">
+            <h2 class="tinder-project-title">${project.title}</h2>
+            <div class="tinder-project-tags">${tagsHtml}</div>
+            <p class="tinder-project-description">${project.description || ''}</p>
+            <h4>Goals</h4>
+            <p class="tinder-project-goals">${project.goals || ''}</p>
+            <div class="tinder-project-meta">
+                <span>By <a href="${project.creator ? '/users/view/' + project.creator.id : '#'}">${project.creator ? project.creator.username : ''}</a></span>
+                <span>Deadline: ${project.deadline || 'N/A'}</span>
+            </div>
+            <div class="tinder-card-actions">
+                <a href="${project.apply_url}" class="btn btn-success btn-lg">Apply</a>
+                <a href="${project.view_url}" class="btn btn-secondary btn-lg">View</a>
+            </div>
+        </div>
+    </div>
+    `;
+}
+
+function renderCards() {
+    const stack = document.getElementById('tinder-card-stack');
+    stack.innerHTML = '';
+    if (loadedProjects.length === 0) {
+        stack.innerHTML = `<div class="tinder-no-projects">
+            <h2>No more projects to show!</h2>
+            <p>Try updating your tags or check back later.</p>
+        </div>`;
+        return;
+    }
+    // Only show one card at a time (like Tinder)
+    if (loadedProjects[currentIndex]) {
+        stack.innerHTML = renderProjectCard(loadedProjects[currentIndex], currentIndex);
+    }
+}
+
+function loadMoreProjects() {
+    if (loading) return;
+    loading = true;
+    document.getElementById('tinder-feed-loader').style.display = 'block';
+    fetch(`/projects/feed_ajax?offset=${loadedProjects.length}&limit=${PROJECTS_PER_LOAD}`)
+        .then(response => response.json())
+        .then(data => {
+            totalProjects = data.total;
+            loadedProjects = loadedProjects.concat(data.projects);
+            document.getElementById('tinder-feed-loader').style.display = 'none';
+            loading = false;
+            renderCards();
+        });
+}
+
+function showNextProject() {
+    if (currentIndex < loadedProjects.length - 1) {
+        currentIndex++;
+        renderCards();
+        // If we're near the end, load more
+        if (loadedProjects.length - currentIndex <= 2 && (totalProjects === null || loadedProjects.length < totalProjects)) {
+            loadMoreProjects();
+        }
+    }
+}
+
+function showPrevProject() {
+    if (currentIndex > 0) {
+        currentIndex--;
+        renderCards();
+    }
+}
+
 document.addEventListener('DOMContentLoaded', function() {
+    // Initial load
+    loadMoreProjects();
+
     // Keyboard navigation
     document.addEventListener('keydown', function(e) {
-        if (e.key === "ArrowLeft") {
-            var prevBtn = document.getElementById('tinder-prev-btn');
-            if (prevBtn) prevBtn.click();
-        }
-        if (e.key === "ArrowRight") {
-            var nextBtn = document.getElementById('tinder-next-btn');
-            if (nextBtn) nextBtn.click();
-        }
+        if (e.key === "ArrowLeft") showPrevProject();
+        if (e.key === "ArrowRight") showNextProject();
     });
 
     // Touch swipe navigation
     let touchStartX = null;
     let touchEndX = null;
-    const threshold = 50; // Minimum px for swipe
-
-    function handleGesture() {
-        if (touchStartX !== null && touchEndX !== null) {
-            if (touchEndX - touchStartX > threshold) {
-                // Swipe right (previous)
-                var prevBtn = document.getElementById('tinder-prev-btn');
-                if (prevBtn) prevBtn.click();
-            } else if (touchStartX - touchEndX > threshold) {
-                // Swipe left (next)
-                var nextBtn = document.getElementById('tinder-next-btn');
-                if (nextBtn) nextBtn.click();
-            }
-        }
-        touchStartX = null;
-        touchEndX = null;
-    }
-
-    const cardStack = document.querySelector('.tinder-card-stack');
+    const threshold = 50;
+    const cardStack = document.getElementById('tinder-card-stack');
     if (cardStack) {
         cardStack.addEventListener('touchstart', function(e) {
             touchStartX = e.changedTouches[0].screenX;
         });
         cardStack.addEventListener('touchend', function(e) {
             touchEndX = e.changedTouches[0].screenX;
-            handleGesture();
+            if (touchStartX !== null && touchEndX !== null) {
+                if (touchEndX - touchStartX > threshold) showPrevProject();
+                else if (touchStartX - touchEndX > threshold) showNextProject();
+            }
+            touchStartX = null;
+            touchEndX = null;
         });
     }
+
+    // Optional: Add next/prev buttons for accessibility
+    const nav = document.createElement('div');
+    nav.className = 'tinder-feed-nav';
+    nav.innerHTML = `
+        <button class="btn btn-secondary btn-lg" id="tinder-prev-btn">Previous</button>
+        <button class="btn btn-primary btn-lg" id="tinder-next-btn">Next</button>
+    `;
+    document.querySelector('.tinder-feed-container').appendChild(nav);
+    document.getElementById('tinder-prev-btn').onclick = showPrevProject;
+    document.getElementById('tinder-next-btn').onclick = showNextProject;
 });
 </script>
 {% endblock %}

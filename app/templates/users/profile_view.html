@@ -51,10 +51,25 @@
                 <div class="card-header">Details</div>
                 <div class="card-body">
                     {% if user_to_display.skills %}
-                        <p><strong>Skills:</strong><br>{{ user_to_display.skills | nl2br }}</p>
+                        <div class="profile-tags-section">
+                            <strong>Skills:</strong>
+                            <div class="tag-list">
+                                {% for tag in user_to_display.skills %}
+                                    <span class="tinder-tag">{{ tag }}</span>
+                                {% endfor %}
+                            </div>
+                        </div>
                     {% endif %}
+
                     {% if user_to_display.fields_interests %}
-                        <p><strong>Fields/Interests:</strong><br>{{ user_to_display.fields_interests | nl2br }}</p>
+                        <div class="profile-tags-section">
+                            <strong>Fields/Interests:</strong>
+                            <div class="tag-list">
+                                {% for tag in user_to_display.fields_interests %}
+                                    <span class="tinder-tag">{{ tag }}</span>
+                                {% endfor %}
+                            </div>
+                        </div>
                     {% endif %}
                     {% if not user_to_display.skills and not user_to_display.fields_interests %}
                         <p>No additional details provided.</p>
