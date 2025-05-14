@@ -84,3 +84,8 @@ def nl2br(eval_ctx, value):
     if eval_ctx.autoescape:
         return Markup(result)
     return result
+
+def load_tags():
+    tags_path = os.path.join(os.path.dirname(__file__), '..', 'tags.json')
+    with open(tags_path, 'r') as f:
+        return json.load(f)

@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileField, FileAllowed
-from wtforms import StringField, PasswordField, TextAreaField, SubmitField, BooleanField, SelectField, DateTimeField, DateField, TimeField
+from wtforms import StringField, PasswordField, TextAreaField, SubmitField, BooleanField, SelectField, DateField, TimeField, SelectMultipleField, widgets
 from wtforms.validators import DataRequired, Email, EqualTo, Length, ValidationError, Optional
 from app.models import User, Project
 
@@ -36,10 +36,10 @@ class EditProfileForm(FlaskForm):
     name = StringField('Name', validators=[DataRequired()])
     surname = StringField('Surname', validators=[DataRequired()])
     family_name = StringField('Family Name')
-    skills = TextAreaField('Skills')
     university = StringField('University')
     degree = StringField('Degree')
-    fields_interests = TextAreaField('Fields/Interests')
+    skills = SelectMultipleField('Skills', choices=[], coerce=str)
+    fields_interests = SelectMultipleField('Fields/Interests', choices=[], coerce=str)
     avatar = FileField('Avatar', validators=[FileAllowed(['jpg', 'png', 'jpeg'])])
     submit = SubmitField('Save Changes')
     
@@ -64,6 +64,8 @@ class ProjectForm(FlaskForm):
     title = StringField('Title', validators=[DataRequired()])
     description = TextAreaField('Description', validators=[DataRequired()])
     goals = TextAreaField('Goals', validators=[DataRequired()])
+    tags = SelectMultipleField('Project Tags', choices=[], coerce=str)
+    image = FileField('Project Image', validators=[FileAllowed(['jpg', 'jpeg', 'png', 'gif'])])
     deadline_date = DateField('Deadline Date', format='%d/%m/%Y', validators=[DataRequired()])
     deadline_time = TimeField('Deadline Time (Optional, 24hr format HH:MM)', format='%H:%M', validators=[Optional()])
     project_type_choices = [
@@ -84,6 +86,8 @@ class EditProjectForm(FlaskForm):
     title = StringField('Title', validators=[DataRequired()])
     description = TextAreaField('Description', validators=[DataRequired()])
     goals = TextAreaField('Goals', validators=[DataRequired()])
+    tags = SelectMultipleField('Project Tags', choices=[], coerce=str)
+    image = FileField('Project Image', validators=[FileAllowed(['jpg', 'jpeg', 'png', 'gif'])])
     deadline_date = DateField('Deadline Date', format='%d/%m/%Y', validators=[DataRequired()])
     deadline_time = TimeField('Deadline Time (Optional, 24hr format HH:MM)', format='%H:%M', validators=[Optional()])
     project_type_choices = [
@@ -140,3 +144,8 @@ class SearchForm(FlaskForm):
     query = StringField('Search', validators=[DataRequired()])
     search_type = SelectField('Type', choices=[('projects', 'Projects'), ('chats', 'Chats')])
     submit = SubmitField('Search')
+
+class MultiCheckboxField(SelectMultipleField):
+    widget = widgets.ListWidget(prefix_label=False)
+    option_widget = widgets.CheckboxInput()
+

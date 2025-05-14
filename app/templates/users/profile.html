@@ -140,27 +140,25 @@
                         
                         <div class="form-group">
                             {{ form.skills.label }}
-                            {{ form.skills(class="form-control", rows=3) }}
-                            {% if form.skills.errors %}
-                                <div class="errors">
-                                    {% for error in form.skills.errors %}
-                                        <span>{{ error }}</span>
-                                    {% endfor %}
-                                </div>
-                            {% endif %}
+                            {% for value, label in form.skills.choices %}
+                                <label>
+                                    <input type="checkbox" name="{{ form.skills.name }}" value="{{ value }}"
+                                        {% if value in form.skills.data %}checked{% endif %}>
+                                    {{ label }}
+                                </label>
+                            {% endfor %}
                         </div>
-                        
                         <div class="form-group">
                             {{ form.fields_interests.label }}
-                            {{ form.fields_interests(class="form-control", rows=3) }}
-                            {% if form.fields_interests.errors %}
-                                <div class="errors">
-                                    {% for error in form.fields_interests.errors %}
-                                        <span>{{ error }}</span>
-                                    {% endfor %}
-                                </div>
-                            {% endif %}
+                            {% for value, label in form.fields_interests.choices %}
+                                <label>
+                                    <input type="checkbox" name="{{ form.fields_interests.name }}" value="{{ value }}"
+                                        {% if value in form.fields_interests.data %}checked{% endif %}>
+                                    {{ label }}
+                                </label>
+                            {% endfor %}
                         </div>
+
                         
                         <div class="form-group">
                             {{ form.avatar.label }}

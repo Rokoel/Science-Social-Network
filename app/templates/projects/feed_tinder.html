@@ -1,0 +1,220 @@
+{% extends "base.html" %}
+
+{% block title %}Project Feed{% endblock %}
+
+{% block content %}
+<div class="tinder-feed-container">
+    {% if not projects %}
+        <div class="tinder-no-projects">
+            <h2>No more projects to show!</h2>
+            <p>Try updating your tags or check back later.</p>
+        </div>
+    {% else %}
+        <div class="tinder-card-stack">
+            {% for project in projects %}
+                <div class="tinder-card">
+                    {% if project.image %}
+                        <div class="tinder-card-image" style="background-image: url('{{ url_for('static', filename='uploads/' + project.image) }}');"></div>
+                    {% else %}
+                        <div class="tinder-card-image generic">
+                            <img src="{{ url_for('static', filename='uploads/generic_project.svg') }}" alt="Generic Project">
+                        </div>
+                    {% endif %}
+                    <div class="tinder-card-content">
+                        <h2 class="tinder-project-title">{{ project.title }}</h2>
+                        <div class="tinder-project-tags">
+                            {% for tag in project.tags %}
+                                <span class="tinder-tag">{{ tag }}</span>
+                            {% endfor %}
+                        </div>
+                        <p class="tinder-project-description">{{ project.description }}</p>
+                        <h4>Goals</h4>
+                        <p class="tinder-project-goals">{{ project.goals }}</p>
+                        <div class="tinder-project-meta">
+                            <span>By <a href="{{ url_for('users.view_profile', user_id=project.creator.id) }}">{{ project.creator.username }}</a></span>
+                            <span>Deadline: {{ project.deadline.strftime('%d/%m/%Y') if project.deadline else 'N/A' }}</span>
+                        </div>
+                        <div class="tinder-card-actions">
+                            {% if current_user in project.members %}
+                                <button class="btn btn-secondary btn-lg" disabled>Already a Member</button>
+                            {% elif current_user in project.admins %}
+                                <button class="btn btn-secondary btn-lg" disabled>Admin</button>
+                            {% elif project in user_applied_projects %}
+                                <button class="btn btn-warning btn-lg" disabled>Application Pending</button>
+                            {% else %}
+                                <a href="{{ url_for('projects.apply', id=project.id) }}" class="btn btn-success btn-lg">Apply</a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+        <div class="tinder-feed-nav">
+            {% if has_prev %}
+                <a href="{{ url_for('projects.feed', page=page-1) }}" class="btn btn-secondary btn-lg" id="tinder-prev-btn">Previous</a>
+            {% endif %}
+            {% if has_next %}
+                <a href="{{ url_for('projects.feed', page=page+1) }}" class="btn btn-primary btn-lg" id="tinder-next-btn">Next</a>
+            {% endif %}
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block head %}
+<style>
+.tinder-feed-container {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 2rem 0;
+}
+.tinder-card-stack {
+    position: relative;
+    min-height: 600px;
+}
+.tinder-card {
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+    overflow: hidden;
+    margin-bottom: 2rem;
+    display: flex;
+    flex-direction: column;
+    min-height: 600px;
+}
+.tinder-card-image {
+    width: 100%;
+    height: 300px;
+    background-size: cover;
+    background-position: center;
+}
+.tinder-card-image.generic {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f1f1f1;
+}
+.tinder-card-image.generic img {
+    max-width: 60%;
+    max-height: 80%;
+    opacity: 0.7;
+}
+.tinder-card-content {
+    padding: 2rem;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+.tinder-project-title {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+    color: var(--primary-color);
+}
+.tinder-project-tags {
+    margin-bottom: 1rem;
+}
+.tinder-tag {
+    display: inline-block;
+    background: var(--primary-color);
+    color: #fff;
+    border-radius: 12px;
+    padding: 0.25em 0.75em;
+    font-size: 0.9em;
+    margin-right: 0.5em;
+    margin-bottom: 0.5em;
+}
+.tinder-project-description {
+    font-size: 1.1rem;
+    margin-bottom: 1rem;
+}
+.tinder-project-goals {
+    font-size: 1rem;
+    margin-bottom: 1rem;
+}
+.tinder-project-meta {
+    font-size: 0.95rem;
+    color: #666;
+    margin-bottom: 1.5rem;
+    display: flex;
+    justify-content: space-between;
+}
+.tinder-card-actions {
+    margin-top: auto;
+    text-align: center;
+}
+.tinder-feed-nav {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 2rem;
+}
+.tinder-no-projects {
+    text-align: center;
+    padding: 4rem 0;
+}
+@media (max-width: 700px) {
+    .tinder-feed-container {
+        max-width: 100%;
+        padding: 1rem 0;
+    }
+    .tinder-card-content {
+        padding: 1rem;
+    }
+    .tinder-card {
+        min-height: 400px;
+    }
+    .tinder-card-image {
+        height: 180px;
+    }
+}
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Keyboard navigation
+    document.addEventListener('keydown', function(e) {
+        if (e.key === "ArrowLeft") {
+            var prevBtn = document.getElementById('tinder-prev-btn');
+            if (prevBtn) prevBtn.click();
+        }
+        if (e.key === "ArrowRight") {
+            var nextBtn = document.getElementById('tinder-next-btn');
+            if (nextBtn) nextBtn.click();
+        }
+    });
+
+    // Touch swipe navigation
+    let touchStartX = null;
+    let touchEndX = null;
+    const threshold = 50; // Minimum px for swipe
+
+    function handleGesture() {
+        if (touchStartX !== null && touchEndX !== null) {
+            if (touchEndX - touchStartX > threshold) {
+                // Swipe right (previous)
+                var prevBtn = document.getElementById('tinder-prev-btn');
+                if (prevBtn) prevBtn.click();
+            } else if (touchStartX - touchEndX > threshold) {
+                // Swipe left (next)
+                var nextBtn = document.getElementById('tinder-next-btn');
+                if (nextBtn) nextBtn.click();
+            }
+        }
+        touchStartX = null;
+        touchEndX = null;
+    }
+
+    const cardStack = document.querySelector('.tinder-card-stack');
+    if (cardStack) {
+        cardStack.addEventListener('touchstart', function(e) {
+            touchStartX = e.changedTouches[0].screenX;
+        });
+        cardStack.addEventListener('touchend', function(e) {
+            touchEndX = e.changedTouches[0].screenX;
+            handleGesture();
+        });
+    }
+});
+</script>
+{% endblock %}

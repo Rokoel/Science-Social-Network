@@ -3,6 +3,8 @@ from flask_login import UserMixin
 from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
 import json
+from sqlalchemy.ext.mutable import MutableList
+from sqlalchemy import PickleType
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -32,10 +34,10 @@ class User(UserMixin, db.Model):
     name = db.Column(db.String(64))
     surname = db.Column(db.String(64))
     family_name = db.Column(db.String(64))
-    skills = db.Column(db.Text)
     university = db.Column(db.String(120))
     degree = db.Column(db.String(64))
-    fields_interests = db.Column(db.Text)
+    skills = db.Column(MutableList.as_mutable(PickleType), default=[])
+    fields_interests = db.Column(MutableList.as_mutable(PickleType), default=[])
     avatar = db.Column(db.String(120), default='default-avatar.svg')
     achievements = db.Column(db.Text, default='[]')  # Store as JSON string of achievement IDs
     
@@ -80,6 +82,8 @@ class Project(db.Model):
     title = db.Column(db.String(100), index=True)
     description = db.Column(db.Text)
     goals = db.Column(db.Text)
+    tags = db.Column(MutableList.as_mutable(PickleType), default=[])
+    image = db.Column(db.String(120))
     creator_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     deadline = db.Column(db.DateTime)

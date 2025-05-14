@@ -1,0 +1,5 @@
+{
+  "skills": ["Python", "Data Analysis", "Machine Learning", "Biology", "Chemistry", "Physics", "Mathematics"],
+  "fields": ["AI", "Bioinformatics", "Quantum Computing", "Ecology", "Neuroscience"],
+  "project_templates": ["Research", "Experiment", "Collaboration", "Survey"]
+}

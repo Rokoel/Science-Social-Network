@@ -3,6 +3,7 @@ from flask_login import current_user, login_required
 from app import db, limiter
 from app.models import User, Project, Chat
 from app.forms import EditProfileForm
+from app.utils import load_tags
 import os
 import json
 from werkzeug.utils import secure_filename
@@ -13,17 +14,25 @@ users_bp = Blueprint('users', __name__, url_prefix='/users')
 @users_bp.route('/profile', methods=['GET', 'POST'])
 @login_required
 def profile():
+    tags = load_tags()
     form = EditProfileForm(current_user.username, current_user.email)
+    form.skills.choices = [(tag, tag) for tag in tags['skills']]
+    form.fields_interests.choices = [(tag, tag) for tag in tags['fields']]
 
     if form.validate_on_submit():
+        allowed_skills = set(tag for tag, _ in form.skills.choices)
+        allowed_fields = set(tag for tag, _ in form.fields_interests.choices)
+        if not set(form.skills.data).issubset(allowed_skills) or not set(form.fields_interests.data).issubset(allowed_fields):
+            flash("Invalid tag selection.")
+            return render_template('users/profile.html', title='Profile', form=form)
         current_user.username = form.username.data
         current_user.email = form.email.data
         current_user.name = form.name.data
         current_user.surname = form.surname.data
         current_user.family_name = form.family_name.data
-        current_user.skills = form.skills.data
         current_user.university = form.university.data
         current_user.degree = form.degree.data
+        current_user.skills = form.skills.data
         current_user.fields_interests = form.fields_interests.data
 
         if form.avatar.data:
@@ -126,7 +135,7 @@ def view_profile(user_id):
              current_app.logger.error(f"Error processing achievements for user {user_id}: {user_to_display.achievements}")
 
 
-    # For "Invite to Chat" functionality (optional, can be expanded)
+    # For "Invite to Chat"
     # Find projects where current_user is admin and user_to_display is a member but not in all chats
     common_projects_admin = []
     if current_user.admin_projects:

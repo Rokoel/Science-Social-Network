@@ -3,12 +3,22 @@ from flask_login import current_user, login_required
 from app import db, limiter, socketio
 from app.models import Project, User, Chat, Notification, chat_members
 from app.forms import ProjectForm, SearchForm, EditProjectForm
+from app.utils import load_tags
 from datetime import datetime, time
-from sqlalchemy import or_, and_
+from sqlalchemy import or_, and_, func
+from werkzeug.utils import secure_filename
+import os
+import uuid
 
 projects_bp = Blueprint('projects', __name__, url_prefix='/projects')
 
 VALID_PROJECT_TYPES = ["Project", "Experiment", "Study", "Other"]
+
+def project_match_score(user, project):
+    # Count matching tags between user and project
+    user_tags = set(user.skills or []) | set(user.fields_interests or [])
+    project_tags = set(project.tags or [])
+    return len(user_tags & project_tags)
 
 def combine_date_time(date_obj, time_obj):
     if date_obj and time_obj:
@@ -21,40 +31,64 @@ def combine_date_time(date_obj, time_obj):
 @login_required
 def feed():
     page = request.args.get('page', 1, type=int)
-    topic = request.args.get('topic')
-    deadline = request.args.get('deadline')
-    
-    query = Project.query.filter(Project.is_public == True)
-    
-    if topic:
-        query = query.filter(or_(
-            Project.title.ilike(f'%{topic}%'),
-            Project.description.ilike(f'%{topic}%'),
-            Project.project_type.ilike(f'%{topic}%')
-        ))
-        
-    if deadline:
-        try:
-            deadline_date = datetime.strptime(deadline, '%Y-%m-%d')
-            query = query.filter(Project.deadline >= deadline_date)
-        except ValueError:
-            pass
-    
-    projects = query.order_by(Project.created_at.desc()).paginate(page=page, per_page=10)
-    
-    search_form = SearchForm()
-    
-    return render_template('projects/feed.html', 
-                          title='Project Feed', 
-                          projects=projects,
-                          search_form=search_form)
+    per_page = 10
+
+    # Get all public projects except those user is already a member of
+    projects = Project.query.filter(
+        Project.is_public == True,
+        ~Project.members.any(User.id == current_user.id)
+    ).all()
+
+    applied_notifications = Notification.query.filter_by(
+        sender_id=current_user.id,
+        notification_type='invite',
+        invite_type='project_application',
+        status='not_answered'
+    ).all()
+    user_applied_project_ids = {n.project_id for n in applied_notifications if n.project_id}
+    user_applied_projects = [p for p in projects if p.id in user_applied_project_ids]
+
+    # Score and sort projects by tag match, then by image presence, then by recency
+    scored_projects = []
+    for project in projects:
+        score = project_match_score(current_user, project)
+        has_image = bool(project.image)
+        scored_projects.append((score, has_image, project.created_at, project))
+
+    # Sort: highest score first, then projects with images, then newest
+    scored_projects.sort(key=lambda x: (-x[0], -x[1], -x[2].timestamp()))
+
+    # Pagination
+    total = len(scored_projects)
+    start = (page - 1) * per_page
+    end = start + per_page
+    paginated_projects = [p[-1] for p in scored_projects[start:end]]
+
+    # For navigation
+    has_prev = page > 1
+    has_next = end < total
+
+    return render_template('projects/feed_tinder.html',
+                           projects=paginated_projects,
+                           page=page,
+                           has_prev=has_prev,
+                           has_next=has_next,
+                           total=total,
+                           user_applied_projects=user_applied_projects)
 
 @projects_bp.route('/create', methods=['GET', 'POST'])
 @login_required
 @limiter.limit("10 per hour")
 def create():
+    tags = load_tags()
     form = ProjectForm()
+    form.tags.choices = [(tag, tag) for tag in tags['skills'] + tags['fields']]
     if form.validate_on_submit():
+        allowed_tags = set(tag for tag, _ in form.tags.choices)
+        if not set(form.tags.data).issubset(allowed_tags):
+            flash("Invalid tag selection.")
+            return render_template('projects/create.html', title='Create Project', form=form)
+
         project_type_data = form.project_type.data
         if project_type_data not in VALID_PROJECT_TYPES:
             project_type_data = "Other"
@@ -65,10 +99,19 @@ def create():
             # It's unlikely to reach here if DateField has DataRequired, but good for safety
             return render_template('projects/create.html', title='Create Project', form=form)
         
+        image_filename = ""
+        if form.image.data:
+            filename = secure_filename(f"{uuid.uuid4()}_{form.image.data.filename}")
+            filepath = os.path.join(current_app.config['UPLOAD_FOLDER'], filename)
+            form.image.data.save(filepath)
+            image_filename += filename
+        
         project = Project(
             title=form.title.data,
             description=form.description.data,
             goals=form.goals.data,
+            tags=form.tags.data,
+            image=image_filename,
             creator_id=current_user.id,
             deadline=combined_deadline,
             project_type=project_type_data,
@@ -213,10 +256,17 @@ def edit(id):
     if current_user != project.creator and current_user not in project.admins:
         flash('You are not authorized to edit this project.')
         return redirect(url_for('projects.view', id=project.id))
-
+    
+    tags = load_tags()
     form = EditProjectForm(original_title=project.title)
+    form.tags.choices = [(tag, tag) for tag in tags['skills'] + tags['fields']]
 
     if form.validate_on_submit():
+        allowed_tags = set(tag for tag, _ in form.tags.choices)
+        if not set(form.tags.data).issubset(allowed_tags):
+            flash("Invalid tag selection.")
+            return render_template(f'projects/{project.id}/edit.html', title='Edit Project', form=form, project=project)
+        
         project_type_data = form.project_type.data
         if project_type_data not in VALID_PROJECT_TYPES:
             project_type_data = "Other"
@@ -226,9 +276,18 @@ def edit(id):
             flash("Invalid deadline date provided.")
             return render_template('projects/edit_project.html', title='Edit Project', form=form, project=project)
         
+        image_filename = ""
+        if form.image.data:
+            filename = secure_filename(f"{uuid.uuid4()}_{form.image.data.filename}")
+            filepath = os.path.join(current_app.config['UPLOAD_FOLDER'], filename)
+            form.image.data.save(filepath)
+            image_filename += filename
+        
         project.title = form.title.data
         project.description = form.description.data
         project.goals = form.goals.data
+        project.tags = form.tags.data
+        project.image = image_filename
         project.deadline = combined_deadline
         project.project_type = form.project_type.data
         project.is_public = form.is_public.data
@@ -239,6 +298,7 @@ def edit(id):
         form.title.data = project.title
         form.description.data = project.description
         form.goals.data = project.goals
+        form.tags.data = project.tags or []
         if project.deadline:
             form.deadline_date.data = project.deadline.date()
             # Only set time if it's not midnight (or your default)
@@ -284,8 +344,8 @@ def search_ajax():
     for p in project_results:
         formatted_results.append({
             'id': p.id,
-            'title': p.title, # Use 'title' for projects
-            # 'description': (p.description[:75] + '...') if p.description and len(p.description) > 75 else p.description, # Optional: snippet
+            'title': p.title,
+            # 'description': (p.description[:75] + '...') if p.description and len(p.description) > 75 else p.description,
             'type': 'project',
             'url': url_for('projects.view', id=p.id)
         })
@@ -293,20 +353,14 @@ def search_ajax():
     for c in chat_results:
         formatted_results.append({
             'id': c.id,
-            'name': c.name, # Use 'name' for chats
+            'name': c.name,
             'project_title': c.project.title if c.project else 'N/A', # Context for chat
             'type': 'chat',
             'url': url_for('chats.view', id=c.id)
         })
     
-    # Optional: If you want to interleave or sort combined results by relevance (more complex)
-    # For now, projects will appear first, then chats, up to the limit for each.
-    # You could sort formatted_results by 'title'/'name' if desired before sending.
-    # Example: formatted_results.sort(key=lambda x: x.get('title', x.get('name', '')).lower())
-
-    current_app.logger.debug(f"AJAX Search for '{query}' by user {current_user.id} found {len(formatted_results)} results.")
+    # formatted_results.sort(key=lambda x: x.get('title', x.get('name', '')).lower())
     return jsonify(formatted_results)
-
 
 @projects_bp.route('/search') # Full search results page
 @login_required
