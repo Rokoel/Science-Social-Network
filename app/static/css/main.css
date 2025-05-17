@@ -750,6 +750,8 @@ footer {
   min-height: 18px;
   text-align: center;
   align-content: center;
+  transform: translate(100%);
+  position: absolute;
 }
 
 .dropdown-content {
@@ -1183,4 +1185,30 @@ ul#chatMemberListUL div {
 .tag-list {
   margin-top: 1rem;
   margin-bottom: 1rem;
+}
+
+.project-materials-list {
+    width: 100%;
+}
+.project-material-block {
+    width: 100%;
+    margin-bottom: 1em;
+    padding: 1em;
+    background: #f8f9fa;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+}
+.material-download-link {
+    font-weight: bold;
+    color: var(--primary-color, #3498db);
+    text-decoration: none;
+}
+.material-download-link:hover {
+    text-decoration: underline;
+}
+.material-meta {
+    color: #888;
+    font-size: 0.9em;
+    margin-top: 0.25em;
 }

@@ -98,6 +98,19 @@
                         </div>
                     {% endif %}
                 </div>
+
+                <div class="form-group">
+                    {{ form.materials.label }}
+                    {{ form.materials(class="form-control", multiple=True) }}
+                    {% if form.materials.errors %}
+                        <div class="errors">
+                            {% for error in form.materials.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                    <small class="text-muted">You can select multiple files.</small>
+                </div>
                 
                 <div class="form-check">
                     {{ form.is_public(class="form-check-input") }}

@@ -6,7 +6,7 @@ from app.forms import EditProfileForm
 from app.utils import load_tags
 import os
 import json
-from werkzeug.utils import secure_filename
+from app.utils import secure_filename
 import uuid
 
 users_bp = Blueprint('users', __name__, url_prefix='/users')

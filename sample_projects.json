@@ -11,7 +11,7 @@
     "title": "Quantum Chemistry Simulator",
     "description": "Simulate molecular interactions using quantum computing.",
     "goals": "Build a prototype quantum chemistry engine.",
-    "tags": ["Quantum Computing", "Chemistry", "Simulation"],
+    "tags": ["Quantum Computing", "Chemistry"],
     "project_type": "Experiment",
     "is_public": true
   },
@@ -19,7 +19,7 @@
     "title": "Ecology Field Survey",
     "description": "A collaborative project to survey local biodiversity.",
     "goals": "Map species diversity in a local park.",
-    "tags": ["Ecology", "Survey", "Biology"],
+    "tags": ["Ecology", "Biology"],
     "project_type": "Survey",
     "is_public": true
   },

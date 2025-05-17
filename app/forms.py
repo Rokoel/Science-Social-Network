@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
 from flask_wtf.file import FileField, FileAllowed
-from wtforms import StringField, PasswordField, TextAreaField, SubmitField, BooleanField, SelectField, DateField, TimeField, SelectMultipleField, widgets
+from wtforms import StringField, PasswordField, TextAreaField, SubmitField, BooleanField, SelectField, DateField, TimeField, SelectMultipleField, widgets, MultipleFileField
 from wtforms.validators import DataRequired, Email, EqualTo, Length, ValidationError, Optional
 from app.models import User, Project
 
@@ -66,6 +66,9 @@ class ProjectForm(FlaskForm):
     goals = TextAreaField('Goals', validators=[DataRequired()])
     tags = SelectMultipleField('Project Tags', choices=[], coerce=str)
     image = FileField('Project Image', validators=[FileAllowed(['jpg', 'jpeg', 'png', 'gif', 'svg'])])
+    materials = MultipleFileField('Project Materials', validators=[
+        FileAllowed(['pdf', 'doc', 'docx', 'xls', 'xlsx', 'csv', 'txt', 'zip', 'tar', 'gz', 'ppt', 'pptx', 'jpg', 'jpeg', 'png', 'svg', 'json', 'xml', 'md'], 'Scientific files only!')
+    ])
     deadline_date = DateField('Deadline Date', format='%d/%m/%Y', validators=[Optional()])
     deadline_time = TimeField('Deadline Time (Optional, 24hr format HH:MM)', format='%H:%M', validators=[Optional()])
     project_type_choices = [
@@ -88,6 +91,9 @@ class EditProjectForm(FlaskForm):
     goals = TextAreaField('Goals', validators=[DataRequired()])
     tags = SelectMultipleField('Project Tags', choices=[], coerce=str)
     image = FileField('Project Image', validators=[FileAllowed(['jpg', 'jpeg', 'png', 'gif', 'svg'])])
+    materials = MultipleFileField('Project Materials', validators=[
+        FileAllowed(['pdf', 'doc', 'docx', 'xls', 'xlsx', 'csv', 'txt', 'zip', 'tar', 'gz', 'ppt', 'pptx', 'jpg', 'jpeg', 'png', 'svg', 'json', 'xml', 'md'], 'Scientific files only!')
+    ])
     deadline_date = DateField('Deadline Date', format='%d/%m/%Y', validators=[Optional()])
     deadline_time = TimeField('Deadline Time (Optional, 24hr format HH:MM)', format='%H:%M', validators=[Optional()])
     project_type_choices = [

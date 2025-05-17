@@ -63,10 +63,8 @@ def accept(id):
     response_data = {'success': False, 'message': 'Processing failed.'} # Default error response
 
     if notification.invite_type == 'chat':
-        current_app.logger.debug(f"ACCEPT: Handling 'chat' invite for notif ID {id}")
         chat = Chat.query.get(notification.chat_id)
         if not chat:
-            current_app.logger.error(f"ACCEPT: Chat ID {notification.chat_id} not found for notif {id}.")
             response_data['message'] = 'Associated chat not found.'
             return jsonify(response_data), 404
 
@@ -79,7 +77,6 @@ def accept(id):
             # db.session.commit() # Commit will happen after inviter notification
 
             redirect_url_val = url_for('chats.view', id=chat.id)
-            current_app.logger.debug(f"ACCEPT: Chat invite {id} processed. Redirect URL: {redirect_url_val}")
             
             if notification.sender_id and notification.sender_id != current_user.id:
                 original_inviter = User.query.get(notification.sender_id)
@@ -101,9 +98,6 @@ def accept(id):
             # Emit socket event after successful commit and response prep
             if notification.sender_id and notification.sender_id != current_user.id and original_inviter:
                 socketio.emit('new_notification', {'count': Notification.query.filter_by(user_id=original_inviter.id, dismissed=False).count()}, room=f'user_{original_inviter.id}')
-                current_app.logger.debug(f"ACCEPT: SocketIO event emitted to user_{original_inviter.id}")
-            else:
-                current_app.logger.debug(f"ACCEPT: No SocketIO event emitted as original inviter is not found or is the current user.")
 
         except Exception as e:
             db.session.rollback()
@@ -169,7 +163,6 @@ def reject(id):
     response_data = {'success': False, 'message': 'Processing failed.'}
 
     if notification.invite_type == 'chat':
-        current_app.logger.debug(f"REJECT: Handling 'chat' invite for notif ID {id}")
         chat = Chat.query.get(notification.chat_id)
         try:
             notification.status = 'rejected' 
@@ -193,7 +186,6 @@ def reject(id):
 
             if notification.sender_id and notification.sender_id != current_user.id and original_inviter:
                 socketio.emit('new_notification', {'count': Notification.query.filter_by(user_id=original_inviter.id, dismissed=False).count()}, room=f'user_{original_inviter.id}')
-                current_app.logger.debug(f"REJECT: SocketIO event emitted to user_{original_inviter.id}")
 
         except Exception as e:
             db.session.rollback()

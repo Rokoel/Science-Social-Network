@@ -142,3 +142,14 @@ class Notification(db.Model):
     
     def __repr__(self):
         return f'<Notification {self.id}>'
+
+class ProjectMaterial(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    filename = db.Column(db.String(256), nullable=False)
+    original_name = db.Column(db.String(256), nullable=False)
+    project_id = db.Column(db.Integer, db.ForeignKey('project.id'), nullable=False)
+    uploaded_by_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    uploaded_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    project = db.relationship('Project', backref=db.backref('materials', lazy='dynamic', cascade='all, delete-orphan'))
+    uploaded_by = db.relationship('User')

@@ -7,7 +7,7 @@ import json
 from datetime import datetime
 import os
 import uuid
-from werkzeug.utils import secure_filename
+from app.utils import secure_filename
 
 @socketio.on('connect')
 def handle_connect():
@@ -85,7 +85,6 @@ def handle_send_message(data):
                 f.write(file_data)
             saved_file_path = filename
         except Exception as e:
-            current_app.logger.error(f"File upload error: {e}")
             current_app.logger.warning(f"IMPORTANT! File upload failed for user {current_user.username} in chat {chat_id}")
             emit('error', {'message': 'File upload failed'})
             # Optionally, do not proceed with message saving if file upload is critical and failed

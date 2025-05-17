@@ -3,7 +3,7 @@ from flask_login import current_user, login_required
 from app import db, limiter, socketio
 from app.models import Chat, Message, Project, User, Notification
 from app.forms import MessageForm, ChatForm
-from werkzeug.utils import secure_filename
+from app.utils import secure_filename
 import os
 import uuid
 from datetime import datetime

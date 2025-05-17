@@ -29,8 +29,6 @@ def create_app(config_class='config.Config', use_redis=True):
         logging.basicConfig(level=logging.INFO)
         app.logger.setLevel(logging.INFO)
     
-    app.logger.info("Flask App Logger initialized.")
-    
     global redis_client
 
     if use_redis:
@@ -56,7 +54,6 @@ def create_app(config_class='config.Config', use_redis=True):
     login_manager.init_app(app)
     login_manager.login_view = 'auth.login'
     limiter.init_app(app)
-    app.logger.info(f'Using the following type of storage: {limiter.storage}')
     socketio.init_app(app, **socketio_kwargs)
     
     os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)

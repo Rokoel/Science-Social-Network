@@ -1,12 +1,12 @@
-from flask import Blueprint, render_template, redirect, url_for, flash, request, jsonify, current_app
+from flask import Blueprint, render_template, redirect, url_for, flash, request, jsonify, current_app, send_from_directory, abort
 from flask_login import current_user, login_required
 from app import db, limiter, socketio
-from app.models import Project, User, Chat, Notification, chat_members
-from app.forms import ProjectForm, SearchForm, EditProjectForm
+from app.models import Project, User, Chat, Notification, ProjectMaterial, chat_members
+from app.forms import ProjectForm, EditProjectForm
 from app.utils import load_tags
 from datetime import datetime, time, timedelta
-from sqlalchemy import or_, and_, func
-from werkzeug.utils import secure_filename
+from sqlalchemy import or_, and_
+from app.utils import secure_filename
 import os
 import uuid
 
@@ -31,6 +31,21 @@ def combine_date_time(date_obj, time_obj):
     else:
         # If neither date nor time is provided, return a date 100 years from now with time set to 00:00:00
         return datetime.now() + timedelta(days=365 * 100)
+
+def save_materials(files, project, user):
+    for file in files:
+        if file and file.filename:
+            original_name = secure_filename(file.filename)
+            filename = secure_filename(f"{uuid.uuid4()}_{original_name}")
+            filepath = os.path.join(current_app.config['UPLOAD_FOLDER'], filename)
+            file.save(filepath)
+            material = ProjectMaterial(
+                filename=filename,
+                original_name=original_name,
+                project_id=project.id,
+                uploaded_by_id=user.id
+            )
+            db.session.add(material)
 
 @projects_bp.route('/feed')
 @login_required
@@ -176,6 +191,9 @@ def create():
         
         db.session.add(project)
         db.session.commit()
+
+        save_materials(form.materials.data, project, current_user)
+        db.session.commit()
         
         # Create default chat
         chat = Chat(name=f"{project.title} Chat", creator_id=current_user.id, project_id=project.id)
@@ -211,7 +229,8 @@ def view(id):
                           project=project,
                           is_admin=is_admin,
                           is_member=is_member,
-                          sorted_chats=sorted_chats)
+                          sorted_chats=sorted_chats,
+                          ProjectMaterial=ProjectMaterial)
 
 @projects_bp.route('/<int:id>/apply')
 @login_required
@@ -335,6 +354,9 @@ def edit(id):
             form.image.data.save(filepath)
             image_filename += filename
         
+        save_materials(form.materials.data, project, current_user)
+        db.session.commit()
+        
         project.title = form.title.data
         project.description = form.description.data
         project.goals = form.goals.data
@@ -360,7 +382,7 @@ def edit(id):
         form.is_public.data = project.is_public
 
     return render_template('projects/edit_project.html', title='Edit Project',
-                           form=form, project=project)
+                           form=form, project=project, ProjectMaterial=ProjectMaterial)
 
 @projects_bp.route('/search_ajax') # Endpoint for live search dropdown
 @login_required
@@ -455,9 +477,6 @@ def search_results_page():
     # This means if page=2 for projects, it's also page=2 for chats.
     chats_paginated = chat_query_obj.order_by(Chat.created_at.desc()).paginate(page=page, per_page=per_page, error_out=False)
 
-
-    current_app.logger.debug(f"Full Search for '{query}' by user {current_user.id}. Projects found: {projects_paginated.total}, Chats found: {chats_paginated.total}")
-
     return render_template('projects/search_results.html', 
                            title=f"Search Results for '{query}'",
                            query=query,
@@ -546,7 +565,7 @@ def manage_member(project_id, user_id, action):
 
     return redirect(url_for('projects.view', id=project.id))
 
-@projects_bp.route('/<int:id>/delete', methods=['POST']) # POST to prevent accidental deletion via GET
+@projects_bp.route('/<int:id>/delete', methods=['GET', 'POST'])
 @login_required
 def delete_project(id):
     project = Project.query.get_or_404(id)
@@ -574,3 +593,34 @@ def delete_project(id):
         current_app.logger.error(f"Error deleting project {id}: {str(e)}", exc_info=True)
         flash("An error occurred while trying to delete the project. Please try again.")
         return redirect(url_for('projects.view', id=project.id))
+
+@projects_bp.route('/materials/<int:material_id>/download')
+@login_required
+def download_material(material_id):
+    material = ProjectMaterial.query.get_or_404(material_id)
+    if not material.project.is_public and current_user not in material.project.members:
+        abort(403)
+    
+    return send_from_directory('static/uploads', material.filename, as_attachment=True, download_name=material.original_name)
+
+@projects_bp.route('/materials/<int:material_id>/delete', methods=['POST'])
+@login_required
+def delete_material(material_id):
+    material = ProjectMaterial.query.get_or_404(material_id)
+    project = material.project
+
+    # Only project creator or admins can delete materials
+    if current_user != project.creator and current_user not in project.admins:
+        flash("You are not authorized to delete this material.")
+        return redirect(url_for('projects.view', id=project.id))
+    try:
+        file_path = os.path.join(current_app.config['UPLOAD_FOLDER'], material.filename)
+        if os.path.exists(file_path):
+            os.remove(file_path)
+    except Exception as e:
+        current_app.logger.warning(f"Could not delete file {file_path}: {e}")
+
+    db.session.delete(material)
+    db.session.commit()
+    flash("Material deleted.")
+    return redirect(url_for('projects.edit', id=project.id))

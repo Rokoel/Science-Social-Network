@@ -106,6 +106,42 @@
                     {% endif %}
                 </div>
 
+                {% if project.materials.count() > 0 %}
+                    <div class="project-materials-list" style="margin-top:1em;">
+                        <strong>Existing Materials:</strong>
+                        {% for material in project.materials.order_by(ProjectMaterial.uploaded_at.desc()).all() %}
+                            <div class="project-material-block" style="width:100%; margin-bottom:1em; padding:1em; background:#f8f9fa; border-radius:8px; display:flex; align-items:left; justify-content:space-between;">
+                                <div>
+                                    <a href="{{ url_for('projects.download_material', material_id=material.id) }}" class="material-download-link" style="font-weight:bold; color:var(--primary-color);" download>
+                                        {{ material.original_name }}
+                                    </a>
+                                    <span class="material-meta" style="display:block; color:#888; font-size:0.9em;">
+                                        Uploaded by <a href="{{ url_for('users.view_profile', user_id=material.uploaded_by.id) }}">{{ material.uploaded_by.username }}</a> on {{ material.uploaded_at.strftime('%d/%m/%Y %H:%M') }}
+                                    </span>
+                                    {% if current_user == project.creator or current_user in project.admins %}
+                                    <button class="btn btn-danger btn-sm" onclick="return deleteMaterial({{ material.id }})">
+                                        Delete
+                                    </button>
+                                {% endif %}
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                <div class="form-group">
+                    {{ form.materials.label }}
+                    {{ form.materials(class="form-control", multiple=True) }}
+                    {% if form.materials.errors %}
+                        <div class="errors">
+                            {% for error in form.materials.errors %}
+                                <span>{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                    <small class="text-muted">You can select multiple files.</small>
+                </div>
+
                 <div class="form-check">
                     {{ form.is_public(class="form-check-input") }} {# Checked status will be pre-filled by form.is_public.data in the route #}
                     {{ form.is_public.label(class="form-check-label") }}
@@ -136,5 +172,27 @@
             });
         });
     });
+    function deleteMaterial(materialId) {
+        if (confirm("Are you sure you want to delete this material?")) {
+            fetch(`/projects/materials/${materialId}/delete`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token() }}'
+                }
+            })
+            .then(response => {
+                if (response.ok) {
+                    location.reload();
+                } else {
+                    alert("Failed to delete material. Please try again.");
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert("An error occurred while deleting the material.");
+            });
+        }
+    }
 </script>
 {% endblock %}
