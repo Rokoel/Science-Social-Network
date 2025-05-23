@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="page-title">My Projects</h1>
+
+    {# Section for Projects Created by the User #}
+    <div class="card mb-4">
+        <div class="card-header">
+            <h2>Projects I Created ({{ created_projects|length }})</h2>
+        </div>
+        <div class="card-body">
+            {% if created_projects %}
+                <ul class="list-group list-group-flush">
+                    {% for project in created_projects %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <a href="{{ url_for('projects.view', id=project.id) }}"><strong>{{ project.title }}</strong></a>
+                                <span class="badge {% if project.is_public %}bg-success{% else %}bg-secondary{% endif %} ms-2">
+                                    {{ "Public" if project.is_public else "Private" }}
+                                </span>
+                                <small class="text-muted d-block">Created: {{ project.created_at.strftime('%d/%m/%Y') }}</small>
+                            </div>
+                            <a href="{{ url_for('projects.view', id=project.id) }}" class="btn btn-sm btn-outline-primary">View Project</a>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p>You haven't created any projects yet. <a href="{{ url_for('projects.create') }}" class="btn btn-sm btn-success">Create one now!</a></p>
+            {% endif %}
+        </div>
+    </div>
+
+    {# Section for Projects User is a Member Of (but not creator) #}
+    <div class="card">
+        <div class="card-header">
+            <h2>Projects I'm a Member Of ({{ member_of_projects|length }})</h2>
+        </div>
+        <div class="card-body">
+            {% if member_of_projects %}
+                <ul class="list-group list-group-flush">
+                    {% for project in member_of_projects %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <a href="{{ url_for('projects.view', id=project.id) }}"><strong>{{ project.title }}</strong></a>
+                                <span class="badge {% if project.is_public %}bg-success{% else %}bg-secondary{% endif %} ms-2">
+                                    {{ "Public" if project.is_public else "Private" }}
+                                </span>
+                                <small class="text-muted d-block">
+                                    Created by: <a href="{{ url_for('users.view_profile', user_id=project.creator.id) }}">{{ project.creator.username }}</a>
+                                    on {{ project.created_at.strftime('%d/%m/%Y') }}
+                                </small>
+                            </div>
+                            <a href="{{ url_for('projects.view', id=project.id) }}" class="btn btn-sm btn-outline-primary">View Project</a>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p>You are not a member of any other projects yet. <a href="{{ url_for('projects.feed') }}" class="btn btn-sm btn-info">Explore projects!</a></p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

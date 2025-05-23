@@ -624,3 +624,22 @@ def delete_material(material_id):
     db.session.commit()
     flash("Material deleted.")
     return redirect(url_for('projects.edit', id=project.id))
+
+@projects_bp.route('/my_projects')
+@login_required
+def my_projects():
+    # Projects created by the current user
+    created_projects = Project.query.filter_by(creator_id=current_user.id)\
+                                    .order_by(Project.created_at.desc())\
+                                    .all()
+    
+    # Projects where the current user is a member, but not the creator
+    # This uses the 'projects' backref from the User model, which is linked via project_members
+    member_of_projects_query = current_user.projects.filter(Project.creator_id != current_user.id)\
+                                                    .order_by(Project.created_at.desc())
+    member_of_projects = member_of_projects_query.all()
+    
+    return render_template('projects/my_projects.html', 
+                           title="My Projects",
+                           created_projects=created_projects,
+                           member_of_projects=member_of_projects)
