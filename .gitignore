@@ -22,3 +22,6 @@ venv/
 *.log
 
 /instance/
+
+output*.txt
+collect_file_contents.py
