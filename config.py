@@ -18,3 +18,10 @@ class Config:
     
     # Achievements path
     ACHIEVEMENTS_FILE = 'achievements.json'
+
+    VK_APP_ID = os.environ.get('VK_APP_ID') or '53619900'
+    VK_SECURE_KEY = os.environ.get('VK_SECURE_KEY') or 'YOUR_VK_SECURE_KEY'
+    # This MUST match exactly what you registered in the VK App settings
+    VK_REDIRECT_URI = os.environ.get('VK_REDIRECT_URI') or 'https://thisisamoguswebsite.org/auth/vk/callback'
+    VK_REDIRECT_URI_FOR_SDK = VK_REDIRECT_URI
+    VK_SCOPE = "email"

@@ -1,49 +1,134 @@
 {% extends "base.html" %}
 
-{% block title %}Login - Scientific Collaboration Platform{% endblock %}
+{% block title %}{{ title }} - Scientific Collaboration Platform{% endblock %}
+
+{% block head %}
+    {{ super() }}
+    {# Use the SDK version VK provided, ensure it's <3.0.0 if specified #}
+    <script src="https://unpkg.com/@vkid/sdk@<3.0.0/dist-sdk/umd/index.js"></script> {# Example: using a specific version < 3.0.0 #}
+{% endblock %}
 
 {% block content %}
 <div class="auth-container">
     <div class="auth-card">
         <h2>Sign In</h2>
-        <form method="POST" action="">
+        
+        <form method="POST" action="{{ url_for('auth.login') }}">
             {{ form.hidden_tag() }}
-            
             <div class="form-group">
                 {{ form.email.label }}
-                {{ form.email(class="form-control") }}
-                {% if form.email.errors %}
-                    <div class="errors">
-                        {% for error in form.email.errors %}
-                            <span>{{ error }}</span>
-                        {% endfor %}
-                    </div>
-                {% endif %}
+                {{ form.email(class="form-control", autocomplete="email") }}
+                {% if form.email.errors %}<div class="errors">{% for error in form.email.errors %}<span>{{ error }}</span>{% endfor %}</div>{% endif %}
             </div>
-            
             <div class="form-group">
                 {{ form.password.label }}
-                {{ form.password(class="form-control") }}
-                {% if form.password.errors %}
-                    <div class="errors">
-                        {% for error in form.password.errors %}
-                            <span>{{ error }}</span>
-                        {% endfor %}
-                    </div>
-                {% endif %}
+                {{ form.password(class="form-control", autocomplete="current-password") }}
+                {% if form.password.errors %}<div class="errors">{% for error in form.password.errors %}<span>{{ error }}</span>{% endfor %}</div>{% endif %}
             </div>
-            
             <div class="form-check">
                 {{ form.remember_me(class="form-check-input") }}
                 {{ form.remember_me.label(class="form-check-label") }}
             </div>
-            
             <div class="form-group">
                 {{ form.submit(class="btn btn-primary") }}
             </div>
         </form>
+        <hr>
+        <p style="text-align: center; margin: 1rem 0;">Or sign in with:</p>
+
+        {# VK ID One Tap Button Container - as per VK's example #}
+        <div id="vkAuthButtonContainer">
+          <script type="text/javascript">
+            if ('VKIDSDK' in window) {
+              const VKID = window.VKIDSDK;
+
+              VKID.Config.init({
+                app: parseInt("{{ vk_app_id_for_sdk }}"), // Your App ID from Flask config
+                redirectUrl: "{{ vk_redirect_uri_for_sdk }}", // Your Redirect URI from Flask config
+                responseMode: VKID.ConfigResponseMode.Callback, // As per VK example
+                source: VKID.ConfigSource.LOWCODE, // As per VK example
+                scope: "{{ current_app.config.VK_SCOPE }}", // Your defined scopes
+              });
+              console.log("VK SDK Configured with AppID: {{ vk_app_id_for_sdk }}, Redirect: {{ vk_redirect_uri_for_sdk }}");
+
+              const oneTap = new VKID.OneTap();
+              const container = document.currentScript.parentElement; // This gets the div
+
+              oneTap.render({
+                container: container,
+                scheme: 'dark', // Or 'light'
+                lang: VKID.Languages.ENG, // Or VKID.Languages.RUS (0), etc.
+                showAlternativeLogin: true,
+                styles: {
+                  borderRadius: 5,
+                  height: 44 // Ensure button is visible
+                }
+              })
+              .on(VKID.WidgetEvents.ERROR, vkidOnError)
+              .on(VKID.OneTapInternalEvents.LOGIN_SUCCESS, function (payload) {
+                console.log("VK SDK LOGIN_SUCCESS payload:", payload);
+
+                // Based on VK's example, they expect you to call exchangeCode
+                 if (payload.code && payload.device_id) {
+                    VKID.Auth.exchangeCode(payload.code, payload.device_id)
+                      .then(vkidOnSuccess) // This success data contains access_token, refresh_token, user_id
+                      .catch(vkidOnError);
+                 } else {
+                    console.error("LOGIN_SUCCESS payload missing code or device_id for exchange.", payload);
+                    vkidOnError({ name: "MissingPayloadData", message: "Required data for token exchange not found in SDK payload." });
+                 }
+              });
+            
+              function vkidOnSuccess(data) {
+                // data here should be the result of exchangeCode, containing access_token, user_id, etc.
+                console.log("VK exchangeCode/Login Success, data from SDK:", data);
+                // Send these tokens to your backend
+                fetch("{{ url_for('auth.vk_sdk_token_login') }}", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': "{{ csrf_token() }}" // If you use CSRF on this POST endpoint
+                    },
+                    body: JSON.stringify({
+                        access_token: data.access_token,
+                        user_id: data.user_id // VK SDK provides user_id in the token exchange response
+                    })
+                })
+                .then(response => response.json())
+                .then(backendResponse => {
+                    console.log("Backend response to token login:", backendResponse);
+                    if (backendResponse.success) {
+                        if (backendResponse.redirect_url) {
+                            window.location.href = backendResponse.redirect_url;
+                        } else {
+                            // Handle success without redirect, e.g., refresh part of the page
+                            alert(backendResponse.message || "Logged in successfully with VK!");
+                            window.location.reload(); // Simple reload
+                        }
+                    } else {
+                        alert("VK Login Failed: " + (backendResponse.message || "Unknown error from server."));
+                    }
+                })
+                .catch(error => {
+                    console.error("Error sending VK tokens to backend:", error);
+                    alert("An error occurred while communicating with the server after VK login.");
+                });
+              }
+            
+              function vkidOnError(error) {
+                console.error("VKID SDK Error/Auth Error:", error);
+                // Display error to user, e.g., in a div
+                alert("VK Login Error: " + (error.message || error.name || "An unknown VK error occurred."));
+              }
+            } else {
+                console.error("VKIDSDK not found on window. Ensure the SDK script is loaded.");
+                document.getElementById('vkAuthButtonContainer').innerHTML = "<p style='color:red;'>VK Login SDK failed to load.</p>";
+            }
+          </script>
+        </div>
+        
         <div class="auth-links">
-            <p>Don't have an account? <a href="{{ url_for('auth.register') }}">Register</a></p>
+            <p>Don't have a password account? <a href="{{ url_for('auth.register') }}">Register with Password</a></p>
         </div>
     </div>
 </div>
