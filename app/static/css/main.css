@@ -26,6 +26,8 @@ body {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
 a {
@@ -98,41 +100,6 @@ a:hover {
     flex: 0 0 25%;
     max-width: 25%;
   }
-}
-
-
-/* Header Styles */
-header {
-  background-color: var(--secondary-color);
-  color: white;
-  padding: 1rem;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-header h1 {
-  font-size: 1.5rem;
-  margin: 0;
-}
-
-nav ul {
-  display: flex;
-  list-style: none;
-  flex-direction: row;
-  align-items: center;
-  gap: 1rem;
-}
-
-nav a {
-  color: white;
-  padding: 0.5rem;
-  border-radius: 4px;
-}
-
-nav a:hover {
-  background-color: rgba(255, 255, 255, 0.1);
-  text-decoration: none;
 }
 
 /* Main Content */
@@ -330,83 +297,6 @@ footer {
   font-size: 0.75rem;
   line-height: 1.2;
 }
-
-/* Landing Page Styles */
-.landing-container {
-  max-width: 1200px;
-  margin: 0 auto;
-}
-
-.landing-hero {
-  text-align: center;
-  padding: 4rem 1rem;
-}
-
-.landing-hero h1 {
-  font-size: 3rem;
-  margin-bottom: 1rem;
-  color: var(--secondary-color);
-}
-
-.landing-hero h2 {
-  font-size: 1.5rem;
-  color: #666;
-  margin-bottom: 2.5rem;
-  font-weight: normal;
-}
-
-.landing-cta {
-  display: flex;
-  justify-content: center;
-  gap: 1rem;
-}
-
-/* .btn-secondary for landing page was different, ensure consistency or specific override */
-.landing-cta .btn-secondary {
-  background-color: #fff; /* Keep landing page specific style if intended */
-  color: var(--primary-color);
-  border: 1px solid var(--primary-color);
-}
-
-.landing-cta .btn-secondary:hover {
-  background-color: #f8f9fa;
-}
-
-.features-section {
-  padding: 2rem 1rem 4rem;
-}
-
-.features-section h3 {
-  text-align: center;
-  font-size: 1.75rem;
-  margin-bottom: 2rem;
-  color: var(--secondary-color);
-}
-
-.features-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 2rem;
-}
-
-.feature-card {
-  background-color: var(--card-color);
-  padding: 1.5rem;
-  border-radius: 8px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-  text-align: center;
-}
-
-.feature-icon {
-  font-size: 2.5rem;
-  margin-bottom: 1rem;
-}
-
-.feature-card h4 {
-  margin-bottom: 0.75rem;
-  color: var(--primary-color);
-}
-
 
 /* Auth Styles */
 .auth-container {
@@ -975,10 +865,6 @@ footer {
 .bg-secondary { background-color: #6c757d !important; }
 
 
-header {
-  flex-direction: column;
-  gap: 0.5rem;
-}
 nav ul {
   flex-wrap: wrap;
   justify-content: center;

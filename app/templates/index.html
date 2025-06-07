@@ -3,58 +3,63 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Scientific Collaboration Platform{% endblock %}</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/responsive.css') }}">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-    {% block head %}{% endblock %}
+    <title>Welcome to Science Collab</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/index.css') }}">
 </head>
-<body>
+<body class="landing-page-standalone">
+    <header class="landing-header">
+        <nav>
+            <a id="main-logo" href="{{ url_for('main.index') }}" class="empty-button">SciCollab</a>
 
-<div class="landing-container">
-    <div class="landing-hero">
-        <h1>Science Social Network</h1> 
-        <h2>Connect, Collaborate, and Create Science Projects Together</h2>
-        
-        <div class="landing-cta">
-            <a href="{{ url_for('auth.login') }}" class="btn btn-primary">Login</a>
-            <a href="{{ url_for('auth.register') }}" class="btn btn-secondary">Register</a>
-        </div>
-    </div>
-    
-    <div class="features-section">
-        <h3>Platform Features</h3>
-        
-        <div class="features-grid">
-            <div class="feature-card">
-                <div class="feature-icon">📋</div>
-                <h4>Create Projects</h4>
-                <p>Start scientific projects and invite others to collaborate with you.</p>
-            </div>
-            
-            <div class="feature-card">
-                <div class="feature-icon">💬</div>
-                <h4>Real-Time Chat</h4>
-                <p>Communicate with your team in real-time with project-specific chat rooms.</p>
-            </div>
-            
-            <div class="feature-card">
-                <div class="feature-icon">🔍</div>
-                <h4>Discover Projects</h4>
-                <p>Find and join interesting scientific projects that match your expertise.</p>
-            </div>
-            
-            <div class="feature-card">
-                <div class="feature-icon">🏆</div>
-                <h4>Achievements</h4>
-                <p>Earn achievements as you create projects and collaborate with others.</p>
+            <button id="header-change-lang" class="secondary-button language-button empty-button" aria-label="Change Language">
+                <img src="{{ url_for('static', filename='images/language-svgrepo-com.svg') }}" alt="Language Icon">
+            </button>
+
+            {% if current_user.is_authenticated %}
+            <a href="{{ url_for('projects.feed') }}" class="empty-button">Project Feed</a>
+            <a href="{{ url_for('auth.logout') }}" class="empty-button">Logout</a>
+            {% else %}
+            <a href="{{ url_for('auth.login') }}" class="empty-button">Login</a>
+            {% endif %}
+        </nav>
+    </header>
+    <main>
+        <img src="{{ url_for('static', filename='images/landing-image.png') }}" alt="Landing Image" id="landing-image">
+        <div id="landing-welcome">
+            <div id="landing-content">
+                <div id="landing-text">
+                    <h1>Welcome to Science Collab</h1>
+                    <p>
+                        A platform for students to connect, collaborate, and create science projects together.
+                    </p>
+                </div>
+                <div id="register-holder">
+                    <a id="register-button" class="full-button" href="{{ url_for('auth.register') }}">
+                        Register
+                    </a>
+                </div>
             </div>
         </div>
-    </div>
-</div>
-<footer>
-    <p>&copy; {{ now.year }} Scientific Collaboration Platform</p>
-</footer>
+        <div id="landing-facts">
+            <div class="landing-fact">
+                <h2 class="landing-fact-header">Create and join projects</h2>
+                <p class="landing-fact-desc">Start scientific projects and invite others to collaborate with you</p>
+            </div>
+            <div class="landing-fact">
+                <h2 class="landing-fact-header">Real-Time Chat</h2>
+                <p class="landing-fact-desc">Communicate with your team in real-time with project-specific chat rooms</p>
+            </div>
+            <div class="landing-fact">
+                <h2 class="landing-fact-header">Create and join projects</h2>
+                <p class="landing-fact-desc">Start scientific projects and invite others to collaborate with you</p>
+            </div>
+            <div class="landing-fact">
+                <h2 class="landing-fact-header">Real-Time Chat</h2>
+                <p class="landing-fact-desc">Communicate with your team in real-time with project-specific chat rooms</p>
+            </div>
+        </div>
+        <hr>
+        {% include 'footer.html' %}
+    </main>
 </body>
 </html>
