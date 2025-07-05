@@ -1,14 +1,15 @@
-{% extends "base.html" %}
+{% extends "base_no_header.html" %}
 
 {% block title %}{{ title }} - Scientific Collaboration Platform{% endblock %}
 
 {% block head %}
     {{ super() }}
-    {# Use the SDK version VK provided, ensure it's <3.0.0 if specified #}
-    <script src="https://unpkg.com/@vkid/sdk@<3.0.0/dist-sdk/umd/index.js"></script> {# Example: using a specific version < 3.0.0 #}
+    <!-- <script src="https://unpkg.com/@vkid/sdk@<3.0.0/dist-sdk/umd/index.js"></script> -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}">
 {% endblock %}
 
 {% block content %}
+<img src="{{ url_for('static', filename='images/landing-image.png') }}" alt="Landing Image" id="landing-image">
 <div class="auth-container">
     <div class="auth-card">
         <h2>Sign In</h2>
@@ -26,17 +27,14 @@
                 {% if form.password.errors %}<div class="errors">{% for error in form.password.errors %}<span>{{ error }}</span>{% endfor %}</div>{% endif %}
             </div>
             <div class="form-check">
-                {{ form.remember_me(class="form-check-input") }}
                 {{ form.remember_me.label(class="form-check-label") }}
+                {{ form.remember_me(class="form-check-input") }}
             </div>
             <div class="form-group">
-                {{ form.submit(class="btn btn-primary") }}
+                {{ form.submit(class="empty-button") }}
             </div>
         </form>
-        <hr>
-        <p style="text-align: center; margin: 1rem 0;">Or sign in with:</p>
-
-        {# VK ID One Tap Button Container - as per VK's example #}
+        <!-- <p style="text-align: center; margin: 1rem 0;">Or sign in with:</p>
         <div id="vkAuthButtonContainer">
           <script type="text/javascript">
             if ('VKIDSDK' in window) {
@@ -125,7 +123,7 @@
                 document.getElementById('vkAuthButtonContainer').innerHTML = "<p style='color:red;'>VK Login SDK failed to load.</p>";
             }
           </script>
-        </div>
+        </div> -->
         
         <div class="auth-links">
             <p>Don't have a password account? <a href="{{ url_for('auth.register') }}">Register with Password</a></p>

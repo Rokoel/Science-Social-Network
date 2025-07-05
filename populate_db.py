@@ -23,7 +23,6 @@ def populate():
                 email='rokoelvel@gmail.com',
                 name='Antonio',
                 surname='Velasquez',
-                family_name='Martinez',
                 password_hash=generate_password_hash('12345678'),
                 skills=['Python', 'AI', 'Data Analysis'],
                 fields_interests=['Healthcare', 'Bioinformatics']
@@ -32,8 +31,7 @@ def populate():
                 username='Sergey',
                 email='sergey@gmail.com',
                 name='Sergey',
-                surname='Johnson',
-                family_name='Sergeyevich',
+                surname='Sergeev',
                 password_hash=generate_password_hash('12345678'),
                 skills=['Quantum Computing', 'Chemistry', 'Simulation'],
                 fields_interests=['Physics', 'Ecology']
@@ -43,7 +41,6 @@ def populate():
                 email='carol@example.com',
                 name='Carol',
                 surname='Williams',
-                family_name='Williams',
                 password_hash=generate_password_hash('password3'),
                 skills=['Neuroscience', 'Biology', 'Automation'],
                 fields_interests=['Neuroscience', 'Survey']

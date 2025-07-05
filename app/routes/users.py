@@ -29,7 +29,6 @@ def profile():
         current_user.email = form.email.data
         current_user.name = form.name.data
         current_user.surname = form.surname.data
-        current_user.family_name = form.family_name.data
         current_user.university = form.university.data
         current_user.degree = form.degree.data
         current_user.skills = form.skills.data
@@ -64,7 +63,6 @@ def profile():
         form.email.data = current_user.email
         form.name.data = current_user.name
         form.surname.data = current_user.surname
-        form.family_name.data = current_user.family_name
         form.skills.data = current_user.skills
         form.university.data = current_user.university
         form.degree.data = current_user.degree

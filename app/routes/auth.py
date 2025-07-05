@@ -52,7 +52,6 @@ def register():
             email=form.email.data,
             name=form.name.data,
             surname=form.surname.data,
-            family_name=form.family_name.data,
             achievements=json.dumps([])
         )
         user.set_password(form.password.data)

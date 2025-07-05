@@ -4,20 +4,59 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Scientific Collaboration Platform{% endblock %}</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/responsive.css') }}">
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     {% block head %}{% endblock %}
 </head>
 <body>
-    <header>
-        <div class="logo">
-            <h1>Science Collab</h1>
-        </div>
+    <header class="landing-header">
+        <nav>
+            <a id="main-logo" href="{{ url_for('main.index') }}" class="empty-button dropdown-button">SciCollab</a>
+            <div class="nav-spacer"></div>
+            {% if current_user.is_authenticated %}
+            <div class="dropdown-container">
+                <a href="{{ url_for('projects.feed') }}" class="empty-button dropdown-button">Projects</a>
+                <div class="nav-dropdown">
+                    <a href="{{ url_for('projects.feed') }}" class="full-button">Project Feed</a>
+                    <a href="{{ url_for('projects.my_projects') }}" class="full-button">My Projects</a>
+                    <a href="{{ url_for('projects.create') }}" class="full-button">Create Project</a>
+                </div>
+            </div>
+            <div class="dropdown-container">
+                <a href="{{ url_for('users.profile') }}" class="empty-button dropdown-button">Profile</a>
+                <div class="nav-dropdown">
+                    <a href="{{ url_for('users.profile') }}" class="full-button">Change Profile</a>
+                    <a href="{{ url_for('projects.my_projects') }}" class="full-button">My Projects</a>
+                    <a href="{{ url_for('auth.logout') }}" class="full-button">Logout</a>
+                </div>
+            </div>
+
+            <div class="notifications-dropdown">
+                <button id="notifications-btn" class="secondary-button icon-button empty-button">
+                    <img src="{{ url_for('static', filename='images/notification-svgrepo-com.svg') }}" alt="Notification Icon">
+                    <span id="notification-count" class="notification-count"></span>
+                </button>
+                <!-- <div id="notifications-content" class="dropdown-content">
+                    <div id="notification-list">
+                        <p class="loading">Loading notifications...</p>
+                    </div>
+                </div> -->
+            </div>
+            <button id="header-change-lang" class="secondary-button icon-button empty-button" aria-label="Change Language">
+                <img src="{{ url_for('static', filename='images/language-svgrepo-com.svg') }}" alt="Language Icon">
+            </button>
+            
+            {% else %}
+            <a href="{{ url_for('auth.login') }}" class="empty-button">Login</a>
+            {% endif %}
+        </nav>
+    </header>
+    <!-- <header>
         <nav>
             {% if current_user.is_authenticated %}
-                <div class="nav-search-container"> {# Wrapper for positioning dropdown #}
+                <div class="nav-search-container">
                     <form id="universal-search-form" class="nav-search-form" action="{{ url_for('projects.search_ajax') }}" method="GET" autocomplete="off">
                         <input type="text" id="universal-search-query" name="query" placeholder="Search projects & chats..." value="{{ request.args.get('query', '') }}">
                     </form>
@@ -25,34 +64,9 @@
                         {# Results will be populated here by JS #}
                     </div>
                 </div>
-                <ul>
-                    <li><a href="{{ url_for('projects.feed') }}">Project Feed</a></li>
-                    <li><a href="{{ url_for('projects.my_projects') }}">My Projects</a></li>
-                    <li><a href="{{ url_for('projects.create') }}">Create Project</a></li>
-                    <li><a href="{{ url_for('users.profile') }}">Profile</a></li>
-                    <li>
-                        <div class="notifications-dropdown">
-                            <button id="notifications-btn" class="dropdown-btn">
-                                <span class="notification-icon">🔔</span>
-                                <span id="notification-count" class="notification-count"></span>
-                            </button>
-                            <div id="notifications-content" class="dropdown-content">
-                                <div id="notification-list">
-                                    <p class="loading">Loading notifications...</p>
-                                </div>
-                            </div>
-                        </div>
-                    </li>
-                    <li><a href="{{ url_for('auth.logout') }}">Logout</a></li>
-                </ul>
-            {% else %}
-                <ul>
-                    <li><a href="{{ url_for('auth.login') }}">Login</a></li>
-                    <li><a href="{{ url_for('auth.register') }}">Register</a></li>
-                </ul>
             {% endif %}
         </nav>
-    </header>
+    </header> -->
     
     <main>
         {% with messages = get_flashed_messages() %}

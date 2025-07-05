@@ -33,7 +33,6 @@ class User(UserMixin, db.Model):
     password_hash = db.Column(db.String(128))
     name = db.Column(db.String(64))
     surname = db.Column(db.String(64))
-    family_name = db.Column(db.String(64))
     university = db.Column(db.String(120))
     degree = db.Column(db.String(64))
     skills = db.Column(MutableList.as_mutable(PickleType), default=[])
