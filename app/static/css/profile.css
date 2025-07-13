@@ -49,7 +49,7 @@ form label {
     color: #BBBCD5;
 }
 
-form label.tag {
+form label.tag, .tag {
     display: inline;
     width: fit-content;
     margin-bottom: 5rem;

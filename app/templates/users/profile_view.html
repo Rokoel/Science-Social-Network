@@ -2,6 +2,11 @@
 
 {% block title %}{{ title }}{% endblock %}
 
+{% block head %}
+    {{ super() }}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/profile.css') }}">
+{% endblock %}
+
 {% block content %}
 <div class="container">
     <h1 class="page-title">{{ user_to_display.username }}'s Profile</h1>
@@ -55,7 +60,7 @@
                             <strong>Skills:</strong>
                             <div class="tag-list">
                                 {% for tag in user_to_display.skills %}
-                                    <span class="tinder-tag">{{ tag }}</span>
+                                    <span class="tag">{{ tag }}</span>
                                 {% endfor %}
                             </div>
                         </div>
@@ -66,7 +71,7 @@
                             <strong>Fields/Interests:</strong>
                             <div class="tag-list">
                                 {% for tag in user_to_display.fields_interests %}
-                                    <span class="tinder-tag">{{ tag }}</span>
+                                    <span class="tag">{{ tag }}</span>
                                 {% endfor %}
                             </div>
                         </div>
