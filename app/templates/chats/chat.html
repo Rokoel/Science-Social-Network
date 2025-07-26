@@ -2,97 +2,121 @@
 
 {% block title %}{{ chat.name }}{% endblock %}
 
+{% block head %}
+    {{ super() }}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/chat.css') }}">
+{% endblock %}
+
 {% block content %}
 <div class="container">
-    <div class="chat-header-info d-flex justify-content-between align-items-center">
-        <div>
-            <h1 class="page-title mb-0">{{ chat.name }}</h1>
-            <div class="chat-meta">
-                <span>Project: <a href="{{ url_for('projects.view', id=project.id) }}">{{ project.title }}</a></span>
-                <span>Creator: <a href="{{url_for('users.view_profile', user_id=chat.creator.id)}}">{{ chat.creator.username }}</a></span>
-                <span>Members: <span id="chatMemberCount">{{ chat.members|length }}</span></span>
-            </div>
-        </div>
-        <div class="chat-actions-top">
-            {% if current_user.id == chat.creator_id or current_user in project.admins %}
-                <a href="{{ url_for('chats.delete_chat', chat_id=chat.id) }}" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete this chat and all its messages? This cannot be undone.');">Delete Chat</a>
-            {% endif %}
-            {% if current_user in chat.members %}
-                <a href="{{ url_for('chats.leave_chat', chat_id=chat.id) }}" class="btn btn-sm btn-warning" onclick="return confirm('Are you sure you want to leave this chat?')">Leave Chat</a>
-            {% endif %}
-        </div>
-    </div>
-    
-    <div class="chat-container">
-        <div class="chat-header">
-            <div class="d-flex justify-content-between align-items-center"> {# Assuming you have some flex utility classes or custom CSS for this #}
-                <h3>Chat Messages</h3>
-            </div>
-        </div>
-        
-        <div class="chat-messages" id="message-container">
-            {% for message in messages.items %} {# messages.items are Message objects #}
-                <div class="message {% if message.user_id == current_user.id %}message-outgoing{% else %}message-incoming{% endif %}" id="message-{{ message.id }}">
-                    <div class="message-header">
-                        {# --- ADD AVATAR FOR SERVER-RENDERED MESSAGES --- #}
-                        {% if message.author %} {# Check if author exists #}
-                            <img src="{{ url_for('static', filename='uploads/' + message.author.avatar) }}" class="chat-avatar-small" alt="{{ message.author.username }}">
-                            <strong><a href="{{ url_for('users.view_profile', user_id=message.author.id) }}">{{ message.author.username }}</a></strong>
-                        {% else %}
-                            <strong>Unknown User</strong>
-                        {% endif %}
-                        {# --- END AVATAR ADDITION --- #}
+    <div class="chat-layout">
+        <div class="chat-main">
+            <div class="chat-header">
+                <div class="chat-info">
+                    <h1 class="chat-title">{{ chat.name }}</h1>
+                    <div class="chat-meta">
+                        <span class="meta-item">
+                            <strong>Project:</strong> <a href="{{ url_for('projects.view', id=project.id) }}" class="meta-link">{{ project.title }}</a>
+                        </span>
+                        <span class="meta-item">
+                            <strong>Creator:</strong> <a href="{{url_for('users.view_profile', user_id=chat.creator.id)}}" class="meta-link">{{ chat.creator.username }}</a>
+                        </span>
+                        <span class="meta-item">
+                            <strong>Members:</strong> <span id="chatMemberCount">{{ chat.members|length }}</span>
+                        </span>
                     </div>
-                    <div class="message-body">
-                        {% if message.text %}<p>{{ message.text | nl2br }}</p>{% endif %} {# nl2br for server-rendered text #}
-                        {% if message.file %}
-                            <div class="message-attachment">
-                                <a href="{{ url_for('static', filename='uploads/' + message.file) }}" target="_blank">
-                                    {% set filename_lower = message.file.lower() %}
-                                    {% if filename_lower.endswith(('.jpg', '.jpeg', '.png', '.gif')) %}
-                                        <img src="{{ url_for('static', filename='uploads/' + message.file) }}" alt="Attachment" class="message-image">
-                                    {% else %}
-                                        <i class="fas fa-file"></i> Download Attachment: {{ message.file.split('_')[-1] }} {# Show cleaner filename #}
-                                    {% endif %}
-                                </a>
+                </div>
+                <div class="chat-actions">
+                    <button id="toggle-members" class="empty-button">
+                        <img src="{{ url_for('static', filename='images/users-svgrepo-com.svg') }}" alt="Members" class="button-icon">
+                        Members
+                    </button>
+                    {% if current_user.id == chat.creator_id or current_user in project.admins %}
+                        <a href="{{ url_for('chats.delete_chat', chat_id=chat.id) }}" class="empty-button danger-button" onclick="return confirm('Are you sure you want to delete this chat and all its messages? This cannot be undone.');">Delete Chat</a>
+                    {% endif %}
+                    {% if current_user in chat.members %}
+                        <a href="{{ url_for('chats.leave_chat', chat_id=chat.id) }}" class="empty-button warning-button" onclick="return confirm('Are you sure you want to leave this chat?')">Leave Chat</a>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="chat-messages" id="message-container">
+                {% for message in messages.items %}
+                    <div class="message {% if message.user_id == current_user.id %}message-outgoing{% else %}message-incoming{% endif %}" id="message-{{ message.id }}">
+                        <div class="message-avatar">
+                            {% if message.author %}
+                                <img src="{{ url_for('static', filename='uploads/' + message.author.avatar) }}" alt="{{ message.author.username }}">
+                            {% endif %}
+                        </div>
+                        <div class="message-content">
+                            <div class="message-header">
+                                {% if message.author %}
+                                    <span class="message-author">
+                                        <a href="{{ url_for('users.view_profile', user_id=message.author.id) }}">{{ message.author.username }}</a>
+                                    </span>
+                                {% else %}
+                                    <span class="message-author">Unknown User</span>
+                                {% endif %}
+                                <span class="message-time">{{ message.timestamp.strftime('%H:%M') }}</span>
                             </div>
-                        {% endif %}
+                            <div class="message-body">
+                                {% if message.text %}<p>{{ message.text | nl2br }}</p>{% endif %}
+                                {% if message.file %}
+                                    <div class="message-attachment">
+                                        <a href="{{ url_for('static', filename='uploads/' + message.file) }}" target="_blank">
+                                            {% set filename_lower = message.file.lower() %}
+                                            {% if filename_lower.endswith(('.jpg', '.jpeg', '.png', '.gif')) %}
+                                                <img src="{{ url_for('static', filename='uploads/' + message.file) }}" alt="Attachment" class="message-image">
+                                            {% else %}
+                                                <div class="file-attachment">
+                                                    <img src="{{ url_for('static', filename='images/file-svgrepo-com.svg') }}" alt="File" class="file-icon">
+                                                    <span>{{ message.file.split('_')[-1] }}</span>
+                                                </div>
+                                            {% endif %}
+                                        </a>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
                     </div>
-                    <div class="message-meta">
-                        {{ message.timestamp.strftime('%Y-%m-%d %H:%M') }}
+                {% else %}
+                    <div class="no-messages">
+                        <p>No messages yet. Be the first to start the conversation!</p>
                     </div>
-                </div>
-            {% else %}
-                <div class="no-messages">
-                    <p>No messages yet. Be the first to start the conversation!</p>
-                </div>
-            {% endfor %}
+                {% endfor %}
+            </div>
+            
+            <div class="chat-form">
+                <form method="POST" enctype="multipart/form-data" id="message-form">
+                    {{ form.hidden_tag() }}
+                    <div class="message-input-container">
+                        {{ form.text(class="message-input", placeholder="Type a message...", rows=1) }}
+                        <div class="input-actions">
+                            <label for="message_file_input" class="file-upload-button empty-button">
+                                <img src="{{ url_for('static', filename='images/attachment-svgrepo-com.svg') }}" alt="Attach" class="button-icon">
+                            </label>
+                            {{ form.file(class="hidden-file-input", id="message_file_input") }}
+                            {{ form.submit(class="full-button send-button") }}
+                        </div>
+                    </div>
+                    <div id="form-errors" class="errors" style="display:none;"></div>
+                </form>
+            </div>
         </div>
-        
-        <div class="chat-form">
-            <form method="POST" enctype="multipart/form-data" id="message-form">
-                {{ form.hidden_tag() }}
-                <div class="form-row">
-                        {{ form.text(class="form-control", placeholder="Type a message...", rows=2) }} {# Let WTForms handle the ID #}
-                        {{ form.file(class="form-control", id="message_file_input") }} {# Keep custom ID for file if preferred, or use {{ form.file.id }} #}
-                        {{ form.submit(class="btn btn-primary", id="send_message_btn") }}
-                </div>
-                 <div id="form-errors" class="errors" style="display:none;"></div>
-            </form>
-        </div>
-    </div>
 
-    <div class="col-md-3"> {# Chat members list #}
-        <div class="card">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                Chat Members
-                {% if current_user in project.admins %} {# Only project admins can invite to project chats #}
-                    <div class="custom-dropdown-container"> {# Renamed for clarity #}
-                        <button class="btn btn-primary" type="button" id="inviteMemberBtn">
-                            Invite Member
-                        </button>
-                        <ul class="custom-dropdown-menu" id="inviteMemberList" style="display: none; position: absolute; background-color: #f9f9f9; min-width: 160px; box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2); z-index: 1; list-style-type: none; padding: 0; margin: 0;">
-                            {# Logic to find invitable members #}
+        <div class="members-sidebar" id="members-sidebar">
+            <div class="sidebar-header">
+                <h3>Chat Members</h3>
+                <button id="close-sidebar" class="empty-button">
+                    <img src="{{ url_for('static', filename='images/close-svgrepo-com.svg') }}" alt="Close" class="button-icon">
+                </button>
+            </div>
+            
+            {% if current_user in project.admins %}
+                <div class="invite-section">
+                    <div class="invite-dropdown">
+                        <button class="full-button" type="button" id="inviteMemberBtn">Invite Member</button>
+                        <div class="invite-menu" id="inviteMemberList" style="display: none;">
                             {% set invitable_members_list = [] %}
                             {% for member in project.members %}
                                 {% if member not in chat.members and member != current_user %}
@@ -102,49 +126,53 @@
 
                             {% if invitable_members_list %}
                                 {% for member_to_invite in invitable_members_list %}
-                                    <li style="padding: 8px 12px; border-bottom: 1px solid #eee;">
-                                        <a class="dropdown-item-link" href="{{ url_for('chats.invite_user', id=chat.id, user_id=member_to_invite.id) }}" style="text-decoration: none; color: black; display: block;">
-                                            {{ member_to_invite.username }}
-                                        </a>
-                                    </li>
+                                    <a class="invite-item empty-button" href="{{ url_for('chats.invite_user', id=chat.id, user_id=member_to_invite.id) }}">
+                                        <img src="{{ url_for('static', filename='uploads/' + member_to_invite.avatar) }}" alt="{{ member_to_invite.username }}" class="member-avatar-small">
+                                        {{ member_to_invite.username }}
+                                    </a>
                                 {% endfor %}
                             {% else %}
-                                <li style="padding: 8px 12px; color: #777;">No new project members to invite.</li>
+                                <div class="no-invite-members">No new project members to invite.</div>
                             {% endif %}
-                        </ul>
-                    </div>
-                {% endif %}
-            </div>
-            <ul class="list-group list-group-flush" id="chatMemberListUL">
-                {% for member in chat.members|sort(attribute='username') %}
-                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                        <div>
-                            <img src="{{ url_for('static', filename='uploads/' + member.avatar) }}" class="chat-avatar-small" alt="{{ member.username }}">
-                            <a href="{{ url_for('users.view_profile', user_id=member.id) }}">{{ member.username }}</a>
-                            {% if member == chat.creator %}<span class="badge bg-info text-dark ms-1">Creator</span>{% endif %}
-                            {% if member == current_user %}<span class="badge bg-primary ms-1">You</span>{% endif %}
                         </div>
-                        {% if current_user in project.admins and member != current_user and member != chat.creator %} {# Project admins can kick, but not self or creator #}
-                            <a href="{{ url_for('chats.kick_user_from_chat', chat_id=chat.id, user_id=member.id) }}" class="btn btn-xs btn-danger" onclick="return confirm('Are you sure you want to remove {{ member.username }} from this chat?')" title="Remove from chat">
-                                Remove user
+                    </div>
+                </div>
+            {% endif %}
+            
+            <div class="members-list" id="chatMemberListUL">
+                {% for member in chat.members|sort(attribute='username') %}
+                    <div class="member-item">
+                        <div class="member-info">
+                            <img src="{{ url_for('static', filename='uploads/' + member.avatar) }}" alt="{{ member.username }}" class="member-avatar">
+                            <div class="member-details">
+                                <a href="{{ url_for('users.view_profile', user_id=member.id) }}" class="member-name">{{ member.username }}</a>
+                                <div class="member-badges">
+                                    {% if member == chat.creator %}<span class="badge creator-badge">Creator</span>{% endif %}
+                                    {% if member == current_user %}<span class="badge you-badge">You</span>{% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        {% if current_user in project.admins and member != current_user and member != chat.creator %}
+                            <a href="{{ url_for('chats.kick_user_from_chat', chat_id=chat.id, user_id=member.id) }}" class="empty-button danger-button member-remove" onclick="return confirm('Are you sure you want to remove {{ member.username }} from this chat?')" title="Remove from chat">
+                                Remove
                             </a>
                         {% endif %}
-                    </li>
+                    </div>
                 {% endfor %}
-            </ul>
+            </div>
         </div>
     </div>
     
     {% if messages.pages > 1 %}
         <div class="pagination">
             {% if messages.has_prev %}
-                <a href="{{ url_for('chats.view', id=chat.id, page=messages.prev_num) }}" class="btn btn-secondary">&laquo; Previous</a>
+                <a href="{{ url_for('chats.view', id=chat.id, page=messages.prev_num) }}" class="empty-button">&laquo; Previous</a>
             {% endif %}
             
             <span class="current-page">Page {{ messages.page }} of {{ messages.pages }}</span>
             
             {% if messages.has_next %}
-                <a href="{{ url_for('chats.view', id=chat.id, page=messages.next_num) }}" class="btn btn-secondary">Next &raquo;</a>
+                <a href="{{ url_for('chats.view', id=chat.id, page=messages.next_num) }}" class="empty-button">Next &raquo;</a>
             {% endif %}
         </div>
     {% endif %}
@@ -156,11 +184,19 @@
     $(document).ready(function() {
         const messageContainer = document.getElementById('message-container');
         if (messageContainer) {
-            // Scroll to bottom only if there are messages, and not if "no messages" is shown
             if (!$('.no-messages').length) {
                 messageContainer.scrollTop = messageContainer.scrollHeight;
             }
         }
+        
+        // Sidebar toggle functionality
+        $('#toggle-members').click(function() {
+            $('#members-sidebar').toggleClass('sidebar-open');
+        });
+        
+        $('#close-sidebar').click(function() {
+            $('#members-sidebar').removeClass('sidebar-open');
+        });
         
         const socket = io();
         const chatId = {{ chat.id }};
@@ -191,28 +227,34 @@
                     fileContent = `
                         <div class="message-attachment">
                             <a href="${filePath}" target="_blank">
-                                <i class="fas fa-file"></i> Download Attachment: ${message.file.split('_').slice(1).join('_') || message.file}
+                                <div class="file-attachment">
+                                    <img src="/static/images/file-svgrepo-com.svg" alt="File" class="file-icon">
+                                    <span>${message.file.split('_').slice(1).join('_') || message.file}</span>
+                                </div>
                             </a>
                         </div>
                     `;
                 }
             }
             
-            // Ensure message.text is handled correctly if it's null or undefined
             const messageTextHtml = message.text ? `<p>${message.text.replace(/\n/g, '<br>')}</p>` : '';
 
             const messageHtml = `
                 <div class="message ${messageClass}" id="message-${message.id}">
-                    <div class="message-header">
-                        <img src="/static/uploads/${message.user_avatar}" class="chat-avatar-small" alt="${message.username}">
-                        <strong><a href="/users/view/${message.user_id}">${message.username}</a></strong>
+                    <div class="message-avatar">
+                        <img src="/static/uploads/${message.user_avatar}" alt="${message.username}">
                     </div>
-                    <div class="message-body">
-                        ${messageTextHtml}
-                        ${fileContent}
-                    </div>
-                    <div class="message-meta">
-                        ${new Date(message.timestamp).toLocaleString()}
+                    <div class="message-content">
+                        <div class="message-header">
+                            <span class="message-author">
+                                <a href="/users/view/${message.user_id}">${message.username}</a>
+                            </span>
+                            <span class="message-time">${new Date(message.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+                        </div>
+                        <div class="message-body">
+                            ${messageTextHtml}
+                            ${fileContent}
+                        </div>
                     </div>
                 </div>
             `;
@@ -236,12 +278,10 @@
             e.preventDefault(); 
             $('#form-errors').hide().text('');
 
-            const textInput = $('#{{ form.text.id }}'); // Use WTForms generated ID for text input
-            console.log(textInput);
+            const textInput = $('#{{ form.text.id }}');
             const fileInput = $('#message_file_input')[0]; 
             
-            console.log(textInput.val());
-            const text = textInput.val() ? textInput.val().trim() : ""; // Check if val() is not undefined/null before trim
+            const text = textInput.val() ? textInput.val().trim() : "";
             const file = fileInput.files[0];
 
             if (!text && !file) {
@@ -259,7 +299,6 @@
             };
 
             if (file) {
-                console.log('sending with file');
                 const reader = new FileReader();
                 reader.onload = function(event) {
                     sendMessageData.file_data = event.target.result; 
@@ -271,7 +310,6 @@
                 };
                 reader.readAsArrayBuffer(file); 
             } else {
-                console.log('sending without file', sendMessageData);
                 socket.emit('send_message', sendMessageData);
             }
             
@@ -282,28 +320,26 @@
         $(window).on('beforeunload', function() {
             socket.emit('leave_chat', { chat_id: chatId });
         });
+        
         const $inviteMemberBtn = $('#inviteMemberBtn');
         const $inviteMemberList = $('#inviteMemberList');
 
         if ($inviteMemberBtn.length && $inviteMemberList.length) {
             $inviteMemberBtn.on('click', function(event) {
-                event.stopPropagation(); // Prevent click from bubbling up to document
+                event.stopPropagation();
                 $inviteMemberList.toggle();
             });
 
-            // Hide dropdown if clicked outside
             $(document).on('click', function(event) {
                 if (!$inviteMemberBtn.is(event.target) && $inviteMemberList.has(event.target).length === 0 && $inviteMemberList.is(':visible')) {
                     $inviteMemberList.hide();
                 }
             });
 
-            // Optional: If clicking an item should hide the dropdown
-            $inviteMemberList.on('click', '.dropdown-item-link', function() {
-                // The link will navigate, but if it were an AJAX action, you'd hide here:
-                // $inviteMemberList.hide(); 
+            $inviteMemberList.on('click', '.invite-item', function() {
+                $inviteMemberList.hide(); 
             });
         }
     });
-    </script>
+</script>
 {% endblock %}
