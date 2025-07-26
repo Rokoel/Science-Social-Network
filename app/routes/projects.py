@@ -145,7 +145,7 @@ def feed_ajax():
 
 @projects_bp.route('/create', methods=['GET', 'POST'])
 @login_required
-@limiter.limit("10 per hour")
+@limiter.limit("10 per hour", per_method=True, methods=["POST"])
 def create():
     tags = load_tags()
     form = ProjectForm()
