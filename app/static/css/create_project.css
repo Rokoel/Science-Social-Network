@@ -12,13 +12,8 @@ main {
 }
 
 .project-main {
-    padding: 1rem;
-    background-color: #131217;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    color: #FEFEFE;
-    width: 80%;
-    border-radius: 10px;
-}
+        padding: 2rem;
+    }
 
 .profile-sidebar {
     display: flex;
@@ -124,7 +119,7 @@ form .empty-button:hover {
 }
 
 #submit {
-    margin-top: 1rem;
+    font-size: 1rem;
 }
 
 .profile-info {

@@ -2,165 +2,461 @@
 
 {% block title %}Edit Project - {{ project.title }}{% endblock %}
 
+{% block head %}
+    {{ super() }}
+    <!-- <link rel="stylesheet" href="{{ url_for('static', filename='css/profile.css') }}"> -->
+{% endblock %}
+
 {% block content %}
+
+<style>
+    .project-main {
+        padding: 2rem;
+    }
+
+    #landing-image {
+        position: absolute;
+        top: 0;
+        left: 0;
+        min-width: 100vw;
+        min-height: 100vh;
+        max-height: 100%;
+        z-index: -1;
+        object-fit: cover;
+    }
+    main {
+        background-color: #131217;
+    }
+
+    form label {
+        display: block;
+        width: 100%;
+        margin-top: 0.5rem;
+        color: #BBBCD5;
+    }
+
+    form label.tag, .tag {
+        display: inline;
+        width: fit-content;
+        margin-right: 0.5rem;
+        color: #FEFEFE;
+        background-color: #BBBCD5;
+        border-radius: 4px;
+        padding: 0.2rem 0.5rem;
+        cursor: pointer;
+        transition: background-color 0.3s ease-in-out, color 0.3s ease-in-out;
+        text-align: center;
+        white-space: nowrap;
+        vertical-align: baseline;
+        line-height: 2rem;
+        border: #131217 2px solid;
+    }
+    form label.tag:hover {
+        background-color: #BBBCD5;
+        color: #131217;
+    }
+
+    form label.tag-badge-active {
+        background-color: #FEFEFE;
+        color: #131217;
+        border: #FEFEFE 2px solid;
+    }
+
+    form .form-control {
+        width: 100%;
+        padding: 0.5rem;
+        border: 1px solid #BBBCD5;
+        border-radius: 4px;
+        background-color: #FEFEFE;
+        color: #131217;
+    }
+
+    form .errors {
+        color: #d5bbbb;
+        font-size: 0.9rem;
+    }
+
+    form .empty-button {
+        width: 100%;
+        font-size: 1rem;
+    }
+
+    form input {
+        font-family: 'Unbound', sans-serif;
+    }
+
+    form .empty-button:hover {
+        transform: scale(1.02);
+        background-color: #FEFEFEFF;
+        color: #131217;
+        border: 4px solid #FEFEFEFF;
+        cursor: pointer;
+    }
+</style>
 <div class="container">
-    <h1 class="page-title">Edit Project: {{ project.title }}</h1>
-
-    <div class="card">
-        <h3 class="card-header">Update Project Details</h3>
-        {% if project.image %}
-            <div class="project-image-container" style="text-align:center; margin-bottom:1rem;">
-                <img src="{{ url_for('static', filename='uploads/' + project.image) }}" alt="Current Project Image" style="max-width: 100%; max-height: 300px; border-radius: 8px;">
-                <p class="text-muted">Current image. Upload a new one to replace.</p>
+    <!-- <h1 class="page-title">Edit Project</h1> -->
+    
+    <div class="project-container">
+        <div class="project-main">
+            {% if project.image %}
+            <div class="project-image-preview-container">
+                <div class="project-image-preview">
+                    <img src="{{ url_for('static', filename='uploads/' + project.image) }}" alt="Current Project Image">
+                    <div class="image-overlay">
+                        <span class="tag non-clickable">Current Image</span>
+                    </div>
+                </div>
             </div>
-        {% endif %}
-        <div class="card-body">
-            <form method="POST" action="" enctype="multipart/form-data">
+            {% endif %}
+
+            <form method="POST" action="" enctype="multipart/form-data" id="edit-project-form">
                 {{ form.hidden_tag() }}
+                
+                <div class="positioning-div">
+                    <div id="title-container">
+                        {{ form.title.label }}
+                        {{ form.title(class="form-control", value=project.title) }}
+                        {% if form.title.errors %}
+                            <div class="errors">
+                                {% for error in form.title.errors %}
+                                    <span>{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
 
-                <div class="form-group">
-                    <strong>{{ form.title.label }}</strong>
-                    {{ form.title(class="form-control", value=project.title) }}
-                    {% if form.title.errors %}
-                        <div class="errors">
-                            {% for error in form.title.errors %}
-                                <span>{{ error }}</span>
+                    <div id="project-type-container">
+                        {{ form.project_type.label }}
+                        {{ form.project_type(class="form-control", value=project.project_type) }}
+                        {% if form.project_type.errors %}
+                            <div class="errors">
+                                {% for error in form.project_type.errors %}
+                                    <span>{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div id="description-container">
+                        {{ form.description.label }}
+                        {{ form.description(class="form-control", rows=4) }}
+                        {% if form.description.errors %}
+                            <div class="errors">
+                                {% for error in form.description.errors %}
+                                    <span>{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div id="goals-container">
+                        {{ form.goals.label }}
+                        {{ form.goals(class="form-control", rows=3) }}
+                        {% if form.goals.errors %}
+                            <div class="errors">
+                                {% for error in form.goals.errors %}
+                                    <span>{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div id="deadline-date-container">
+                        {{ form.deadline_date.label }}
+                        {{ form.deadline_date(class="form-control", type="text", placeholder="DD/MM/YYYY") }}
+                        <small class="text-muted">Format: DD/MM/YYYY (e.g., 31/12/2025)</small>
+                        {% if form.deadline_date.errors %}
+                            <div class="errors">
+                                {% for error in form.deadline_date.errors %}<span>{{ error }}</span>{% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div id="deadline-time-container">
+                        {{ form.deadline_time.label }}
+                        {{ form.deadline_time(class="form-control", type="text", placeholder="HH:MM") }}
+                        <small class="text-muted">Format: HH:MM (e.g., 14:30 or leave blank for start of day)</small>
+                        {% if form.deadline_time.errors %}
+                            <div class="errors">
+                                {% for error in form.deadline_time.errors %}<span>{{ error }}</span>{% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div id="tags-container">
+                        {{ form.tags.label }}
+                        <div class="tags-grid">
+                            {% for value, label in form.tags.choices %}
+                                <label class="tag tag-badge {% if value in form.tags.data %}tag-badge-active{% endif %}">
+                                    <input type="checkbox" name="{{ form.tags.name }}" value="{{ value }}" style="opacity: 0; position: absolute;"
+                                        {% if value in form.tags.data %}checked{% endif %}>
+                                    {{ label }}
+                                </label>
                             {% endfor %}
                         </div>
-                    {% endif %}
-                </div>
+                    </div>
 
-                <div class="form-group">
-                    <strong>{{ form.description.label }}</strong>
-                    {{ form.description(class="form-control", rows=5) }} {# Value will be pre-filled by form.description.data in the route #}
-                    {% if form.description.errors %}
-                        <div class="errors">
-                            {% for error in form.description.errors %}
-                                <span>{{ error }}</span>
-                            {% endfor %}
+                    <div id="image-upload-container">
+                        {{ form.image.label }}
+                        {{ form.image(class="form-control") }}
+                        {% if form.image.errors %}
+                            <div class="errors">
+                                {% for error in form.image.errors %}
+                                    <span>{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div id="materials-upload-container">
+                        {{ form.materials.label }}
+                        {{ form.materials(class="form-control", multiple=True) }}
+                        {% if form.materials.errors %}
+                            <div class="errors">
+                                {% for error in form.materials.errors %}
+                                    <span>{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <small class="text-muted">You can select multiple files to add to the project.</small>
+                    </div>
+
+                    <div id="privacy-container">
+                        <div class="privacy-toggle">
+                            {{ form.is_public(class="form-check-input") }}
+                            {{ form.is_public.label }}
+                            <small class="text-muted">Public projects are visible to all users. Private projects are only visible to members.</small>
                         </div>
-                    {% endif %}
-                </div>
-
-                <div class="form-group">
-                    <strong>{{ form.goals.label }}</strong>
-                    {{ form.goals(class="form-control", rows=3) }} {# Value will be pre-filled by form.goals.data in the route #}
-                    {% if form.goals.errors %}
-                        <div class="errors">
-                            {% for error in form.goals.errors %}
-                                <span>{{ error }}</span>
-                            {% endfor %}
-                        </div>
-                    {% endif %}
-                </div>
-
-                <div class="form-group">
-                    <strong>{{ form.tags.label }}</strong>
-                    <br>
-                    {% for value, label in form.tags.choices %}
-                        <label class="tinder-tag tag-badge {% if value in form.tags.data %}tag-badge-active{% endif %}">
-                            <input type="checkbox" name="{{ form.tags.name }}" value="{{ value }}" style="opacity: 0; position: absolute;"
-                                {% if value in form.tags.data %}checked{% endif %}>
-                            {{ label }}
-                        </label>
-                    {% endfor %}
-                </div>
-                <div class="form-group">
-                    <strong>{{ form.image.label }}</strong>
-                    {{ form.image(class="form-control") }}
-                    {% if form.image.errors %}
-                        <div class="errors">
-                            {% for error in form.image.errors %}
-                                <span>{{ error }}</span>
-                            {% endfor %}
-                        </div>
-                    {% endif %}
-                </div>
-
-                <div class="form-group">
-                    <strong>{{ form.deadline_date.label }}</strong>
-                    {{ form.deadline_date(class="form-control", type="text", placeholder="DD/MM/YYYY") }}
-                    <small class="text-muted">Format: DD/MM/YYYY (e.g., 31/12/2025)</small>
-                    {% if form.deadline_date.errors %}
-                        <div class="errors">{% for error in form.deadline_date.errors %}<span>{{ error }}</span>{% endfor %}</div>
-                    {% endif %}
-                </div>
-                <div class="form-group">
-                    <strong>{{ form.deadline_time.label }}</strong>
-                    {{ form.deadline_time(class="form-control", type="text", placeholder="HH:MM") }}
-                    <small class="text-muted">Format: HH:MM (e.g., 14:30 or leave blank for start of day)</small>
-                    {% if form.deadline_time.errors %}
-                        <div class="errors">{% for error in form.deadline_time.errors %}<span>{{ error }}</span>{% endfor %}</div>
-                    {% endif %}
-                </div>
-
-                <div class="form-group">
-                    <strong>{{ form.project_type.label }}</strong>
-                    {{ form.project_type(class="form-control", value=project.project_type) }}
-                    {% if form.project_type.errors %}
-                        <div class="errors">
-                            {% for error in form.project_type.errors %}
-                                <span>{{ error }}</span>
-                            {% endfor %}
-                        </div>
-                    {% endif %}
+                    </div>
                 </div>
 
                 {% if project.materials.count() > 0 %}
-                    <div class="project-materials-list" style="margin-top:1em;">
-                        <strong>Existing Materials:</strong>
-                        {% for material in project.materials.order_by(ProjectMaterial.uploaded_at.desc()).all() %}
-                            <div class="project-material-block" style="width:100%; margin-bottom:1em; padding:1em; background:#f8f9fa; border-radius:8px; display:flex; align-items:left; justify-content:space-between;">
-                                <div>
-                                    <a href="{{ url_for('projects.download_material', material_id=material.id) }}" class="material-download-link" style="font-weight:bold; color:var(--primary-color);" download>
-                                        {{ material.original_name }}
-                                    </a>
-                                    <span class="material-meta" style="display:block; color:#888; font-size:0.9em;">
-                                        Uploaded by <a href="{{ url_for('users.view_profile', user_id=material.uploaded_by.id) }}">{{ material.uploaded_by.username }}</a> on {{ material.uploaded_at.strftime('%d/%m/%Y %H:%M') }}
-                                    </span>
+                    <div class="existing-materials-section">
+                        <h3 class="card-header">Existing Materials</h3>
+                        <div class="materials-grid">
+                            {% for material in project.materials.order_by(ProjectMaterial.uploaded_at.desc()).all() %}
+                                <div class="material-card">
+                                    <div class="material-info">
+                                        <a href="{{ url_for('projects.download_material', material_id=material.id) }}" class="material-title" download>
+                                            {{ material.original_name }}
+                                        </a>
+                                        <div class="material-meta">
+                                            <span class="tag">{{ material.uploaded_by.username }}</span>
+                                            <span class="material-date">{{ material.uploaded_at.strftime('%d/%m/%Y') }}</span>
+                                        </div>
+                                    </div>
                                     {% if current_user == project.creator or current_user in project.admins %}
-                                    <button class="btn btn-danger btn-sm" onclick="return deleteMaterial({{ material.id }})">
-                                        Delete
-                                    </button>
-                                {% endif %}
+                                        <button type="button" class="empty-button delete-material-btn" onclick="deleteMaterial({{ material.id }})">
+                                            Delete
+                                        </button>
+                                    {% endif %}
                                 </div>
-                            </div>
-                        {% endfor %}
+                            {% endfor %}
+                        </div>
                     </div>
                 {% endif %}
 
-                <div class="form-group">
-                    {{ form.materials.label }}
-                    {{ form.materials(class="form-control", multiple=True) }}
-                    {% if form.materials.errors %}
-                        <div class="errors">
-                            {% for error in form.materials.errors %}
-                                <span>{{ error }}</span>
-                            {% endfor %}
-                        </div>
-                    {% endif %}
-                    <small class="text-muted">You can select multiple files.</small>
-                </div>
-
-                <div class="form-check">
-                    {{ form.is_public(class="form-check-input") }} {# Checked status will be pre-filled by form.is_public.data in the route #}
-                    {{ form.is_public.label(class="form-check-label") }}
-                    <small class="text-muted">Public projects are visible to all users. Private projects are only visible to members.</small>
-                </div>
-
-                <div class="form-group mt-4">
-                    {{ form.submit(class="btn btn-primary") }}
-                    <a href="{{ url_for('projects.view', id=project.id) }}" class="btn btn-secondary">Cancel</a>
+                <div class="form-actions">
+                    {{ form.submit(class="full-button") }}
+                    <a href="{{ url_for('projects.view', id=project.id) }}" class="full-button">Cancel</a>
                 </div>
             </form>
         </div>
     </div>
 </div>
+
+<style>
+/* Custom styles for the edit project page */
+.non-clickable {
+    pointer-events: none;
+}
+
+.project-image-preview-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 5rem;
+}
+
+.project-image-preview {
+    position: relative;
+    text-align: center;
+    margin-bottom: 2rem;
+    border-radius: 10px;
+    overflow: hidden;
+    width: fit-content;
+}
+
+.project-image-preview img {
+    max-width: 100%;
+    max-height: 300px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.image-overlay {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+}
+
+.privacy-toggle {
+    gap: 0.5rem;
+    padding: 1rem;
+    border: 2px solid #BBBCD5;
+    border-radius: 10px;
+    background-color: rgba(187, 188, 213, 0.1);
+}
+
+.privacy-toggle input[type="checkbox"] {
+    width: 1.2rem;
+    height: 1.2rem;
+    margin-right: 0.5rem;
+}
+
+.existing-materials-section {
+    margin: 2rem 0;
+    padding: 1.5rem;
+    border: 2px solid #BBBCD5;
+    border-radius: 10px;
+    background-color: rgba(187, 188, 213, 0.05);
+    color: #FEFEFE;
+}
+
+.materials-grid {
+    display: grid;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.material-card {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+    padding: 1rem;
+    background-color: rgba(254, 254, 254, 0.05);
+    border: 1px solid #BBBCD5;
+    border-radius: 8px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.material-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.material-info {
+    flex: 1;
+}
+
+.material-title {
+    color: #FEFEFE;
+    font-weight: bold;
+    text-decoration: none;
+    display: block;
+    margin-bottom: 0.5rem;
+}
+
+.material-title:hover {
+    color: #BBBCD5;
+    text-decoration: underline;
+}
+
+.material-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.material-date {
+    color: #BBBCD5;
+    font-size: 0.9rem;
+}
+
+.delete-material-btn {
+    margin-left: auto;
+    margin-right: auto;
+    padding: 0.5rem 1rem;
+    font-size: 1rem;
+    width: 30vw !important;
+    min-width: fit-content;
+}
+
+.form-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    margin-top: 2rem;
+    padding-top: 1rem;
+    border-top: 2px solid #BBBCD5;
+}
+
+.text-muted {
+    color: #BBBCD5;
+    font-size: 0.9rem;
+    margin-top: 0.25rem;
+    display: block;
+}
+
+/* Grid layout for form fields */
+#edit-project-form .positioning-div {
+    display: grid;
+    grid-template-areas: 
+        "title project-type"
+        "description description"
+        "goals goals"
+        "deadline-date deadline-time"
+        "tags tags"
+        "image-upload materials-upload"
+        "privacy privacy";
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+}
+
+#title-container { grid-area: title; }
+#project-type-container { grid-area: project-type; }
+#description-container { grid-area: description; }
+#goals-container { grid-area: goals; }
+#deadline-date-container { grid-area: deadline-date; }
+#deadline-time-container { grid-area: deadline-time; }
+#tags-container { grid-area: tags; }
+#image-upload-container { grid-area: image-upload; }
+#materials-upload-container { grid-area: materials-upload; }
+#privacy-container { grid-area: privacy; }
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    #edit-project-form .positioning-div {
+        grid-template-areas: 
+            "title"
+            "project-type"
+            "description"
+            "goals"
+            "deadline-date"
+            "deadline-time"
+            "tags"
+            "image-upload"
+            "materials-upload"
+            "privacy";
+        grid-template-columns: 1fr;
+    }
+    
+    .form-actions {
+        flex-direction: column;
+    }
+    
+    .materials-grid {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
 {% endblock %}
 
 {% block scripts %}
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        // Tag toggle functionality
         document.querySelectorAll('.tag-badge').forEach(function(tag) {
             tag.addEventListener('click', function(event) {
                 event.preventDefault();
@@ -172,8 +468,9 @@
             });
         });
     });
+
     function deleteMaterial(materialId) {
-        if (confirm("Are you sure you want to delete this material?")) {
+        if (confirm("Are you sure you want to delete this material? This action cannot be undone.")) {
             fetch(`/projects/materials/${materialId}/delete`, {
                 method: 'POST',
                 headers: {
@@ -183,7 +480,15 @@
             })
             .then(response => {
                 if (response.ok) {
-                    location.reload();
+                    // Add a smooth fade-out animation before reload
+                    const materialCard = event.target.closest('.material-card');
+                    materialCard.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+                    materialCard.style.opacity = '0';
+                    materialCard.style.transform = 'translateX(20px)';
+                    
+                    setTimeout(() => {
+                        location.reload();
+                    }, 300);
                 } else {
                     alert("Failed to delete material. Please try again.");
                 }

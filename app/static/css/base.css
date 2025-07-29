@@ -210,10 +210,422 @@ a.empty-button.dropdown-button {
 
 .nav-dropdown .full-button:hover {
     background-color: #131217;
-    border: 4px solid #131217AA;
 }
 
 .nav-dropdown .full-button {
-    border: 4px solid #131217;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+#notification-count {
+    background-color: #BBBCD5;
+    color: #FFFFFF;
+    border-radius: 50%;
+    width: 1.5rem;
+    height: 1.5rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 0.8rem;
+    position: absolute;
+    transform: translate(70%, -20%);
+    transition: background-color 0.3s ease-in-out, color 0.3s ease-in-out;
+}
+
+#notifications-btn:hover #notification-count {
+    background-color: #FEFEFE;
+    color: #131217;
+}
+
+.dropdown-content {
+    display: none;
+    position: absolute;
+    right: 0;
+    top: 100%;
+    background-color: #131217;
+    border: 2px solid #BBBCD5;
+    border-radius: 10px;
+    min-width: 350px;
+    max-width: 400px;
+    max-height: 500px;
+    overflow-y: auto;
+    z-index: 1000;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+    margin-top: 0.5rem;
+    animation: dropdown-appear 0.3s ease-in-out forwards;
+}
+
+.dropdown-content.show {
+    display: block;
+}
+
+.notification-item {
+    padding: 1rem;
+    border-bottom: 1px solid #BBBCD5;
+    color: #FEFEFE;
+    transition: background-color 0.3s ease-in-out;
+    cursor: pointer;
+}
+
+.notification-item:last-child {
+    border-bottom: none;
+}
+
+.notification-item:hover {
+    background-color: rgba(187, 188, 213, 0.1);
+}
+
+.notification-item p {
+    margin: 0 0 0.5rem 0;
+    line-height: 1.4;
+    color: #FEFEFE;
+}
+
+.notification-item small {
+    color: #BBBCD5;
+    font-size: 0.8rem;
+}
+
+.notification-item a {
+    color: #FEFEFE;
+    border-bottom: 1px solid transparent;
+    transition: border-bottom 0.3s ease;
+}
+
+.notification-item a:hover {
+    border-bottom: 1px solid #FEFEFE;
+    text-decoration: none;
+}
+
+.notification-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+    flex-wrap: wrap;
+    justify-content: space-between;
+}
+
+.notification-actions button {
+    padding: 0.4rem 0.8rem;
+    border-radius: 6px;
+    border: 2px solid;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+    font-family: 'Unbound', sans-serif;
+}
+
+.accept-btn {
+    background-color: #FEFEFE;
+    color: #131217;
+    border-color: #FEFEFE;
+}
+
+.accept-btn:hover {
+    background-color: #131217;
+    color: #FEFEFE;
+    transform: scale(1.05);
+}
+
+.reject-btn {
+    background-color: transparent;
+    color: #BBBCD5;
+    border-color: #BBBCD5;
+}
+
+.reject-btn:hover {
+    background-color: #BBBCD5;
+    color: #131217;
+    transform: scale(1.05);
+}
+
+.dismiss-btn {
+    padding: 0.4rem 0.8rem;
+    border-radius: 6px;
+    border: 2px solid;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+    font-family: 'Unbound', sans-serif;
+    background-color: transparent;
+    color: #FEFEFE;
+    border-color: #FEFEFE;
+    margin-top: 0.5rem;
+    width: 100%;
+}
+
+.dismiss-btn:hover {
+    background-color: #FEFEFE;
+    color: #131217;
+    transform: scale(1.02);
+}
+
+.notification-header {
+    padding: 1rem;
+    border-bottom: 2px solid #BBBCD5;
+    background-color: rgba(187, 188, 213, 0.1);
+    font-weight: bold;
+    color: #FEFEFE;
+    text-align: center;
+}
+
+.no-notifications {
+    padding: 2rem 1rem;
+    text-align: center;
+    color: #BBBCD5;
+}
+
+.loading-notifications {
+    padding: 2rem 1rem;
+    text-align: center;
+    color: #BBBCD5;
+}
+
+/* Custom scrollbar for notifications */
+.dropdown-content::-webkit-scrollbar {
+    width: 6px;
+}
+
+.dropdown-content::-webkit-scrollbar-track {
+    background: #131217;
+}
+
+.dropdown-content::-webkit-scrollbar-thumb {
+    background: #BBBCD5;
+    border-radius: 3px;
+}
+
+.dropdown-content::-webkit-scrollbar-thumb:hover {
+    background: #FEFEFE;
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+    .dropdown-content {
+        min-width: 280px;
+        max-width: calc(100vw - 2rem);
+        right: -1rem;
+    }
+    
+    .notification-actions {
+        flex-direction: column;
+    }
+}
+
+.has-new-notification {
+    animation: notification-pulse 2s ease-in-out;
+}
+
+@keyframes notification-pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+}
+
+/* Flash Messages Styling */
+.flash-messages {
+    position: fixed;
+    top: 1rem;
+    right: 1rem;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    max-width: 400px;
+    pointer-events: none;
+}
+
+.flash-message {
+    background-color: #131217;
+    border: 2px solid #BBBCD5;
+    color: #FEFEFE;
+    padding: 1rem 1.5rem;
+    border-radius: 10px;
+    font-family: 'Unbound', sans-serif;
+    font-size: 0.95rem;
+    line-height: 1.4;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(10px);
+    pointer-events: all;
+    position: relative;
+    animation: flashSlideIn 0.4s ease-out forwards;
+    transform: translateX(100%);
+    opacity: 0;
+    max-width: 100%;
+    word-wrap: break-word;
+}
+
+@keyframes flashSlideIn {
+    0% {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    100% {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes flashSlideOut {
+    0% {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    100% {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+}
+
+.flash-message.removing {
+    animation: flashSlideOut 0.3s ease-in forwards;
+}
+
+/* Success variant - for successful actions */
+.flash-message.success {
+    border-color: #bbd5bb;
+    background-color: rgba(187, 213, 187, 0.1);
+    color: #bbd5bb;
+}
+
+.flash-message.success::before {
+    content: "✓ ";
+    font-weight: bold;
+    margin-right: 0.5rem;
+}
+
+/* Error variant - for errors */
+.flash-message.error {
+    border-color: #d5bbbb;
+    background-color: rgba(213, 187, 187, 0.1);
+    color: #d5bbbb;
+}
+
+.flash-message.error::before {
+    content: "⚠ ";
+    font-weight: bold;
+    margin-right: 0.5rem;
+}
+
+/* Warning variant - for warnings */
+.flash-message.warning {
+    border-color: #d5d5bb;
+    background-color: rgba(213, 213, 187, 0.1);
+    color: #d5d5bb;
+}
+
+.flash-message.warning::before {
+    content: "⚡ ";
+    font-weight: bold;
+    margin-right: 0.5rem;
+}
+
+/* Info variant - for informational messages */
+.flash-message.info {
+    border-color: #BBBCD5;
+    background-color: rgba(187, 188, 213, 0.1);
+    color: #BBBCD5;
+}
+
+.flash-message.info::before {
+    content: "ℹ ";
+    font-weight: bold;
+    margin-right: 0.5rem;
+}
+
+/* Close button */
+.flash-message::after {
+    content: "×";
+    position: absolute;
+    top: 0.5rem;
+    right: 0.75rem;
+    font-size: 1.2rem;
+    font-weight: bold;
+    cursor: pointer;
+    opacity: 0.7;
+    transition: opacity 0.3s ease;
+    line-height: 1;
+    width: 1.5rem;
+    height: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background-color: transparent;
+}
+
+.flash-message::after:hover {
+    opacity: 1;
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Auto-dismiss progress bar */
+.flash-message.auto-dismiss::before {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 3px;
+    background-color: currentColor;
+    border-radius: 0 0 8px 8px;
+    animation: progressBar 4s linear forwards;
+    opacity: 0.6;
+}
+
+@keyframes progressBar {
+    0% {
+        width: 100%;
+    }
+    100% {
+        width: 0%;
+    }
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+    .flash-messages {
+        top: 0.5rem;
+        right: 0.5rem;
+        left: 0.5rem;
+        max-width: none;
+    }
+    
+    .flash-message {
+        padding: 0.75rem 1rem;
+        font-size: 0.9rem;
+    }
+    
+    .flash-message::after {
+        top: 0.25rem;
+        right: 0.5rem;
+    }
+}
+
+/* Additional hover effects */
+.flash-message:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
+    transition: all 0.3s ease;
+}
+
+/* Focus styles for accessibility */
+.flash-message:focus {
+    outline: 2px solid #FEFEFE;
+    outline-offset: 2px;
+}
+
+.privacy-toggle {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.privacy-toggle label {
+    width: fit-content;
+    white-space: nowrap;
+    padding: 1rem;
+    margin: 0;
+}
+
+.container {
+    margin-top: 7rem;
 }

@@ -20,7 +20,7 @@ def login():
     if form.validate_on_submit():
         user = User.query.filter_by(email=form.email.data).first()
         if user is None or not user.check_password(form.password.data):
-            flash('Invalid email or password')
+            flash('Invalid email or password', 'error')
             return redirect(url_for('auth.login'))
         
         login_user(user, remember=form.remember_me.data)
@@ -57,7 +57,7 @@ def register():
         user.set_password(form.password.data)
         db.session.add(user)
         db.session.commit()
-        flash('Congratulations, you are now registered!')
+        flash('Congratulations, you are now registered!', 'success')
         return redirect(url_for('auth.login'))
     
     return render_template('auth/register.html', title='Register', form=form)

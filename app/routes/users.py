@@ -23,7 +23,7 @@ def profile():
         allowed_skills = set(tag for tag, _ in form.skills.choices)
         allowed_fields = set(tag for tag, _ in form.fields_interests.choices)
         if not set(form.skills.data).issubset(allowed_skills) or not set(form.fields_interests.data).issubset(allowed_fields):
-            flash("Invalid tag selection.")
+            flash("Invalid tag selection.", 'error')
             return render_template('users/profile.html', title='Profile', form=form)
         current_user.username = form.username.data
         current_user.email = form.email.data
@@ -55,7 +55,7 @@ def profile():
             current_user.avatar = filename
 
         db.session.commit()
-        flash("Your profile has been updated!")
+        flash("Your profile has been updated!", 'success')
         return redirect(url_for("users.profile"))
 
     elif request.method == "GET":
@@ -88,7 +88,7 @@ def profile():
                         achievements.append(achievement)
         except (json.JSONDecodeError, FileNotFoundError) as e:
             current_app.logger.error(f"Error loading achievements: {e}")
-            flash("Error loading achievements for your profile.")
+            flash("Error loading achievements for your profile.", 'error')
         except TypeError: # If json.loads results in None or non-iterable
             current_app.logger.error(f"Error processing achievements: {current_user.achievements}")
 

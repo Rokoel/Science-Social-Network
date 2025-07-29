@@ -9,120 +9,130 @@
 
 {% block content %}
 <div class="container">
-    <h1 class="page-title">Create New Project</h1>
-    
     <div class="project-container">
-        <h3 class="card-header">Project Details</h3>
+        <!-- <h3 class="card-header">Project Details</h3> -->
         <div class="project-main">
-            <form method="POST" action="" enctype="multipart/form-data">
-            
+            <form method="POST" action="" enctype="multipart/form-data" id="create-project-form">
                 {{ form.hidden_tag() }}
                 
-                <div class="form-group">
-                    <strong>{{ form.title.label }}</strong>
-                    {{ form.title(class="form-control") }}
-                    {% if form.title.errors %}
-                        <div class="errors">
-                            {% for error in form.title.errors %}
-                                <span>{{ error }}</span>
+                <div class="positioning-div">
+                    <div id="title-container">
+                        {{ form.title.label }}
+                        {{ form.title(class="form-control") }}
+                        {% if form.title.errors %}
+                            <div class="errors">
+                                {% for error in form.title.errors %}
+                                    <span>{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div id="project-type-container">
+                        {{ form.project_type.label }}
+                        {{ form.project_type(class="form-control") }}
+                        {% if form.project_type.errors %}
+                            <div class="errors">
+                                {% for error in form.project_type.errors %}
+                                    <span>{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div id="description-container">
+                        {{ form.description.label }}
+                        {{ form.description(class="form-control", rows=4) }}
+                        {% if form.description.errors %}
+                            <div class="errors">
+                                {% for error in form.description.errors %}
+                                    <span>{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div id="goals-container">
+                        {{ form.goals.label }}
+                        {{ form.goals(class="form-control", rows=3) }}
+                        {% if form.goals.errors %}
+                            <div class="errors">
+                                {% for error in form.goals.errors %}
+                                    <span>{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div id="deadline-date-container">
+                        {{ form.deadline_date.label }}
+                        {{ form.deadline_date(class="form-control", type="text", placeholder="DD/MM/YYYY") }}
+                        <small class="text-muted">Format: DD/MM/YYYY (e.g., 31/12/2025)</small>
+                        {% if form.deadline_date.errors %}
+                            <div class="errors">
+                                {% for error in form.deadline_date.errors %}<span>{{ error }}</span>{% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div id="deadline-time-container">
+                        {{ form.deadline_time.label }}
+                        {{ form.deadline_time(class="form-control", type="text", placeholder="HH:MM") }}
+                        <small class="text-muted">Format: HH:MM (e.g., 14:30 or leave blank for start of day)</small>
+                        {% if form.deadline_time.errors %}
+                            <div class="errors">
+                                {% for error in form.deadline_time.errors %}<span>{{ error }}</span>{% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div id="tags-container">
+                        {{ form.tags.label }}
+                        <div class="tags-grid">
+                            {% for value, label in form.tags.choices %}
+                                <label class="tag tag-badge">
+                                    <input type="checkbox" name="{{ form.tags.name }}" value="{{ value }}" style="opacity: 0; position: absolute;">
+                                    {{ label }}
+                                </label>
                             {% endfor %}
                         </div>
-                    {% endif %}
-                </div>
-                
-                <div class="form-group">
-                    <strong>{{ form.description.label }}</strong>
-                    {{ form.description(class="form-control", rows=5) }}
-                    {% if form.description.errors %}
-                        <div class="errors">
-                            {% for error in form.description.errors %}
-                                <span>{{ error }}</span>
-                            {% endfor %}
+                    </div>
+
+                    <div id="image-upload-container">
+                        {{ form.image.label }}
+                        {{ form.image(class="form-control") }}
+                        {% if form.image.errors %}
+                            <div class="errors">
+                                {% for error in form.image.errors %}
+                                    <span>{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div id="materials-upload-container">
+                        {{ form.materials.label }}
+                        {{ form.materials(class="form-control", multiple=True) }}
+                        {% if form.materials.errors %}
+                            <div class="errors">
+                                {% for error in form.materials.errors %}
+                                    <span>{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <small class="text-muted">You can select multiple files to add to the project.</small>
+                    </div>
+
+                    <div id="privacy-container">
+                        <div class="privacy-toggle">
+                            {{ form.is_public(class="form-check-input") }}
+                            {{ form.is_public.label }}
+                            <small class="text-muted">Public projects are visible to all users. Private projects are only visible to members.</small>
                         </div>
-                    {% endif %}
-                </div>
-                
-                <div class="form-group">
-                    <strong>{{ form.goals.label }}</strong>
-                    {{ form.goals(class="form-control", rows=3) }}
-                    {% if form.goals.errors %}
-                        <div class="errors">
-                            {% for error in form.goals.errors %}
-                                <span>{{ error }}</span>
-                            {% endfor %}
-                        </div>
-                    {% endif %}
-                </div>
-                <div class="form-group">
-                    <strong>{{ form.tags.label }}</strong>
-                    {% for value, label in form.tags.choices %}
-                        <label class="tag tag-badge">
-                            <input type="checkbox" name="{{ form.tags.name }}" value="{{ value }}" style="opacity: 0; position: absolute;">
-                            {{ label }}
-                        </label>
-                    {% endfor %}
-                </div>
-                <div class="form-group">
-                    <strong>{{ form.image.label }}</strong>
-                    {{ form.image(class="form-control") }}
-                    {% if form.image.errors %}
-                        <div class="errors">
-                            {% for error in form.image.errors %}
-                                <span>{{ error }}</span>
-                            {% endfor %}
-                        </div>
-                    {% endif %}
-                </div>
-                
-                <div class="form-group">
-                    <strong>{{ form.deadline_date.label }}</strong>
-                    {{ form.deadline_date(class="form-control", type="text", placeholder="DD/MM/YYYY") }}
-                    <small class="text-muted">Format: DD/MM/YYYY (e.g., 31/12/2025)</small>
-                    {% if form.deadline_date.errors %}
-                        <div class="errors">{% for error in form.deadline_date.errors %}<span>{{ error }}</span>{% endfor %}</div>
-                    {% endif %}
-                </div>
-                <div class="form-group">
-                    <strong>{{ form.deadline_time.label }}</strong>
-                    {{ form.deadline_time(class="form-control", type="text", placeholder="HH:MM") }}
-                    <small class="text-muted">Format: HH:MM (e.g., 14:30 or leave blank for start of day)</small>
-                    {% if form.deadline_time.errors %}
-                        <div class="errors">{% for error in form.deadline_time.errors %}<span>{{ error }}</span>{% endfor %}</div>
-                    {% endif %}
-                </div>
-                
-                <div class="form-group">
-                    <strong>{{ form.project_type.label }}</strong>
-                    {{ form.project_type(class="form-control") }}
-                    {% if form.project_type.errors %}
-                        <div class="errors">
-                            {% for error in form.project_type.errors %}
-                                <span>{{ error }}</span>
-                            {% endfor %}
-                        </div>
-                    {% endif %}
+                    </div>
                 </div>
 
-                <div class="form-group">
-                    {{ form.materials.label }}
-                    {{ form.materials(class="form-control", multiple=True) }}
-                    {% if form.materials.errors %}
-                        <div class="errors">
-                            {% for error in form.materials.errors %}
-                                <span>{{ error }}</span>
-                            {% endfor %}
-                        </div>
-                    {% endif %}
-                    <small class="text-muted">You can select multiple files.</small>
-                </div>
-                
-                <div class="form-check">
-                    {{ form.is_public(class="form-check-input") }}
-                    {{ form.is_public.label(class="form-check-label") }}
-                    <small>Public projects are visible to all users. Private projects are only visible to members.</small>
-                </div>
-                
-                <div id="form-buttons">
+                <div class="form-actions">
                     {{ form.submit(class="full-button") }}
                     <a href="{{ url_for('projects.feed') }}" class="full-button">Cancel</a>
                 </div>
@@ -130,6 +140,158 @@
         </div>
     </div>
 </div>
+<style>
+    .privacy-toggle {
+    gap: 0.5rem;
+    padding: 1rem;
+    border: 2px solid #BBBCD5;
+    border-radius: 10px;
+    background-color: rgba(187, 188, 213, 0.1);
+}
+
+.privacy-toggle input[type="checkbox"] {
+    width: 1.2rem;
+    height: 1.2rem;
+    margin-right: 0.5rem;
+}
+
+.existing-materials-section {
+    margin: 2rem 0;
+    padding: 1.5rem;
+    border: 2px solid #BBBCD5;
+    border-radius: 10px;
+    background-color: rgba(187, 188, 213, 0.05);
+    color: #FEFEFE;
+}
+
+.materials-grid {
+    display: grid;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.material-card {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+    padding: 1rem;
+    background-color: rgba(254, 254, 254, 0.05);
+    border: 1px solid #BBBCD5;
+    border-radius: 8px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.material-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.material-info {
+    flex: 1;
+}
+
+.material-title {
+    color: #FEFEFE;
+    font-weight: bold;
+    text-decoration: none;
+    display: block;
+    margin-bottom: 0.5rem;
+}
+
+.material-title:hover {
+    color: #BBBCD5;
+    text-decoration: underline;
+}
+
+.material-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.material-date {
+    color: #BBBCD5;
+    font-size: 0.9rem;
+}
+
+.delete-material-btn {
+    margin-left: auto;
+    margin-right: auto;
+    padding: 0.5rem 1rem;
+    font-size: 1rem;
+    width: 30vw !important;
+    min-width: fit-content;
+}
+
+.form-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    margin-top: 2rem;
+    padding-top: 1rem;
+    border-top: 2px solid #BBBCD5;
+}
+
+.text-muted {
+    color: #BBBCD5;
+    font-size: 0.9rem;
+    margin-top: 0.25rem;
+    display: block;
+}
+
+/* Grid layout for form fields */
+#create-project-form .positioning-div {
+    display: grid;
+    grid-template-areas: 
+        "title project-type"
+        "description description"
+        "goals goals"
+        "deadline-date deadline-time"
+        "tags tags"
+        "image-upload materials-upload"
+        "privacy privacy";
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+}
+
+#title-container { grid-area: title; }
+#project-type-container { grid-area: project-type; }
+#description-container { grid-area: description; }
+#goals-container { grid-area: goals; }
+#deadline-date-container { grid-area: deadline-date; }
+#deadline-time-container { grid-area: deadline-time; }
+#tags-container { grid-area: tags; }
+#image-upload-container { grid-area: image-upload; }
+#materials-upload-container { grid-area: materials-upload; }
+#privacy-container { grid-area: privacy; }
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    #create-project-form .positioning-div {
+        grid-template-areas: 
+            "title"
+            "project-type"
+            "description"
+            "goals"
+            "deadline-date"
+            "deadline-time"
+            "tags"
+            "image-upload"
+            "materials-upload"
+            "privacy";
+        grid-template-columns: 1fr;
+    }
+    
+    .form-actions {
+        flex-direction: column;
+    }
+    
+    .materials-grid {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
 {% endblock %}
 {% block scripts %}
 <script>

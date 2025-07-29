@@ -17,7 +17,7 @@ def view(id):
     project = chat.project # Assuming chat always has a project
 
     if current_user not in chat.members:
-        flash("You are not a member of this chat.")
+        flash("You are not a member of this chat.", 'error')
         return redirect(url_for("projects.view", id=project.id))
 
     form = MessageForm() # Form is still passed to the template
@@ -46,7 +46,7 @@ def create(project_id):
     
     # Check if user is an admin
     if current_user not in project.admins:
-        flash('Only project admins can create new chats.')
+        flash('Only project admins can create new chats.', 'error')
         return redirect(url_for('projects.view', id=project.id))
     
     form = ChatForm()
@@ -78,7 +78,7 @@ def create(project_id):
                 db.session.add(notification)
         
         db.session.commit()
-        flash(f"Chat '{chat.name}' has been created!")
+        flash(f"Chat '{chat.name}' has been created!", 'success')
         return redirect(url_for('chats.view', id=chat.id))
     
     return render_template('chats/create_chat.html',
@@ -95,17 +95,17 @@ def invite_user(id, user_id):
     
     # Ensure current user is an admin of the project
     if current_user not in project.admins:
-        flash('Only project admins can invite users to chats.')
+        flash('Only project admins can invite users to chats.', 'error')
         return redirect(url_for('chats.view', id=chat.id))
     
     # Ensure target user is a member of the project
     if user not in project.members:
-        flash('User must be a project member to be invited to chat.')
+        flash('User must be a project member to be invited to chat.', 'error')
         return redirect(url_for('chats.view', id=chat.id))
     
     # Check if user is already in the chat
     if user in chat.members:
-        flash('User is already a member of this chat.')
+        flash('User is already a member of this chat.', 'info')
         return redirect(url_for('chats.view', id=chat.id))
     
     # Create an invitation notification
@@ -120,7 +120,7 @@ def invite_user(id, user_id):
     db.session.add(notification)
     db.session.commit()
     
-    flash(f"Invitation sent to {user.username}.")
+    flash(f"Invitation sent to {user.username}.", 'success')
     return redirect(url_for('chats.view', id=chat.id))
 
 @chats_bp.route('/<int:chat_id>/leave')
@@ -130,7 +130,7 @@ def leave_chat(chat_id):
     project = Project.query.get_or_404(chat.project_id) # Get project for context
 
     if current_user not in chat.members:
-        flash("You are not a member of this chat.")
+        flash("You are not a member of this chat.", 'error')
         return redirect(url_for('projects.view', id=project.id)) # Redirect to project
 
     # Chat creator cannot leave if they are the only admin of the chat (if chats had admins)
@@ -140,14 +140,14 @@ def leave_chat(chat_id):
 
     if current_user == chat.creator and len(chat.members) == 1:
         # Allow leaving, flash a warning and delete the chat
-        flash("You are the only member of this chat. The chat will be deleted.")
+        flash("You are the only member of this chat. The chat will be deleted.", 'warning')
         db.session.delete(chat)
         db.session.commit()
         pass
 
     chat.members.remove(current_user)
     db.session.commit()
-    flash(f"You have left the chat '{chat.name}'.")
+    flash(f"You have left the chat '{chat.name}'.", 'info')
 
 
     return redirect(url_for('projects.view', id=project.id))
@@ -163,26 +163,26 @@ def kick_user_from_chat(chat_id, user_id):
     # Authorization: Only project admins can kick from project chats
     # Or, if chats had their own admins: if current_user is a chat admin
     if current_user not in project.admins:
-        flash("You are not authorized to kick members from this chat.")
+        flash("You are not authorized to kick members from this chat.", 'error')
         return redirect(url_for('chats.view', id=chat.id))
 
     if user_to_kick not in chat.members:
-        flash(f"{user_to_kick.username} is not a member of this chat.")
+        flash(f"{user_to_kick.username} is not a member of this chat.", 'error')
         return redirect(url_for('chats.view', id=chat.id))
 
     if user_to_kick == current_user:
-        flash("You cannot kick yourself. Use the 'Leave Chat' option.")
+        flash("You cannot kick yourself. Use the 'Leave Chat' option.", 'error')
         return redirect(url_for('chats.view', id=chat.id))
     
     # Prevent kicking the chat creator by other project admins
     if user_to_kick == chat.creator and current_user != chat.creator:
-         flash(f"The chat creator ({user_to_kick.username}) cannot be kicked by other admins.")
+         flash(f"The chat creator ({user_to_kick.username}) cannot be kicked by other admins.", 'error')
          return redirect(url_for('chats.view', id=chat.id))
 
 
     chat.members.remove(user_to_kick)
     db.session.commit()
-    flash(f"{user_to_kick.username} has been kicked from the chat '{chat.name}'.")
+    flash(f"{user_to_kick.username} has been kicked from the chat '{chat.name}'.", 'success')
 
     # Notify the kicked user
     kicked_user_notification = Notification(
@@ -208,13 +208,8 @@ def delete_chat(chat_id):
 
     # Authorization: Only chat creator OR a project admin can delete the chat
     if not (current_user.id == chat.creator_id or current_user in project.admins):
-        flash('You are not authorized to delete this chat.')
+        flash('You are not authorized to delete this chat.', 'error')
         return redirect(url_for('chats.view', id=chat.id))
-    
-    # Prevent deleting the last default chat of a project (optional rule)
-    # Example: if chat.name == f"{project.title} Chat (General)" and project.chats.count() == 1:
-    #     flash("Cannot delete the last default chat of the project.")
-    #     return redirect(url_for('projects.view', id=project.id))
 
     try:
         # Delete associated notifications for this chat (optional)
@@ -223,10 +218,10 @@ def delete_chat(chat_id):
 
         db.session.delete(chat)
         db.session.commit()
-        flash(f"Chat '{chat.name}' has been deleted.")
+        flash(f"Chat '{chat.name}' has been deleted.", 'success')
         return redirect(url_for('projects.view', id=project.id))
     except Exception as e:
         db.session.rollback()
         current_app.logger.error(f"Error deleting chat {chat_id}: {str(e)}", exc_info=True)
-        flash("An error occurred while trying to delete the chat. Please try again.")
+        flash("An error occurred while trying to delete the chat. Please try again.", 'error')
         return redirect(url_for('chats.view', id=chat.id))

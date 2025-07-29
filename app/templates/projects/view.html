@@ -2,186 +2,814 @@
 
 {% block title %}{{ project.title }}{% endblock %}
 
+{% block head %}
+    {{ super() }}
+    <style>
+        .container {
+            margin-top: 6rem;
+            background-color: #131217;
+            color: #FEFEFE;
+            min-height: 100vh;
+            padding: 2rem 1rem;
+        }
+
+        .project-header {
+            display: flex;
+            gap: 2rem;
+            margin-bottom: 3rem;
+            flex-wrap: wrap;
+            align-items: flex-start;
+        }
+
+        .project-header-text {
+            flex: 1;
+            min-width: 300px;
+        }
+
+        .project-title {
+            font-size: 2.5rem;
+            color: #FEFEFE;
+            margin-bottom: 1.5rem;
+            line-height: 1.2;
+        }
+
+        .project-meta {
+            display: grid;
+            gap: 0.75rem;
+            font-size: 1rem;
+            color: #BBBCD5;
+            margin-bottom: 2rem;
+        }
+
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .meta-link {
+            color: #FEFEFE;
+            border-bottom: 1px solid transparent;
+            transition: border-bottom 0.3s ease;
+        }
+
+        .meta-link:hover {
+            border-bottom: 1px solid #FEFEFE;
+        }
+
+        .project-image-container {
+            flex-shrink: 0;
+            text-align: center;
+        }
+
+        .project-image-container img {
+            max-width: 300px;
+            max-height: 200px;
+            border-radius: 10px;
+            border: 2px solid #BBBCD5;
+            object-fit: cover;
+        }
+
+        .project-actions {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-top: 2rem;
+        }
+
+        .project-actions .full-button,
+        .project-actions .empty-button {
+            min-width: 150px;
+        }
+
+        .content-section {
+            background-color: #131217;
+            border: 2px solid #BBBCD5;
+            border-radius: 10px;
+            margin-bottom: 2rem;
+            overflow: hidden;
+        }
+
+        .section-header {
+            padding: 1.5rem;
+            border-bottom: 2px solid #BBBCD5;
+            background-color: #131217;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            color: #FEFEFE;
+            margin: 0;
+        }
+
+        .section-body {
+            padding: 1.5rem;
+        }
+
+        .section-content {
+            color: #BBBCD5;
+            line-height: 1.6;
+            margin-bottom: 1rem;
+        }
+
+        .section-content:last-child {
+            margin-bottom: 0;
+        }
+
+        .project-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .project-tag {
+            background-color: #BBBCD5;
+            color: #131217;
+            padding: 0.3rem 0.7rem;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            border: 2px solid #BBBCD5;
+            transition: all 0.3s ease;
+        }
+
+        .materials-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .material-item {
+            background-color: rgba(187, 188, 213, 0.1);
+            padding: 1rem;
+            border-radius: 8px;
+            border: 1px solid #BBBCD5;
+            transition: background-color 0.3s ease;
+        }
+
+        .material-item:hover {
+            background-color: rgba(187, 188, 213, 0.2);
+        }
+
+        .material-link {
+            color: #FEFEFE;
+            font-weight: bold;
+            font-size: 1.1rem;
+            text-decoration: none;
+            border-bottom: 1px solid transparent;
+            transition: border-bottom 0.3s ease;
+        }
+
+        .material-link:hover {
+            border-bottom: 1px solid #FEFEFE;
+        }
+
+        .material-meta {
+            color: #BBBCD5;
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+        }
+
+        .material-meta a {
+            color: #FEFEFE;
+        }
+
+        .chat-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .chat-item {
+            background-color: rgba(187, 188, 213, 0.05);
+            border: 1px solid #BBBCD5;
+            border-radius: 8px;
+            padding: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .chat-item:hover {
+            background-color: rgba(187, 188, 213, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .chat-link {
+            color: #FEFEFE;
+            font-weight: bold;
+            font-size: 1.1rem;
+            text-decoration: none;
+            border-bottom: 1px solid transparent;
+            transition: border-bottom 0.3s ease;
+        }
+
+        .chat-link:hover {
+            border-bottom: 1px solid #FEFEFE;
+        }
+
+        .chat-info {
+            color: #BBBCD5;
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+        }
+
+        .members-section {
+            margin-bottom: 2rem;
+        }
+
+        .members-section:last-child {
+            margin-bottom: 0;
+        }
+
+        .members-section h4 {
+            color: #FEFEFE;
+            margin-bottom: 1rem;
+            font-size: 1.2rem;
+        }
+
+        .members-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .member-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            background-color: rgba(187, 188, 213, 0.05);
+            border: 1px solid #BBBCD5;
+            border-radius: 8px;
+            transition: background-color 0.3s ease;
+        }
+
+        .member-item:hover {
+            background-color: rgba(187, 188, 213, 0.1);
+        }
+
+        .member-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .member-avatar {
+            width: 2.5rem;
+            height: 2.5rem;
+            border-radius: 50%;
+            border: 2px solid #BBBCD5;
+            object-fit: cover;
+        }
+
+        .member-details {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .member-name {
+            color: #FEFEFE;
+            text-decoration: none;
+            font-weight: bold;
+            border-bottom: 1px solid transparent;
+            transition: border-bottom 0.3s ease;
+            width: fit-content;
+        }
+
+        .member-name:hover {
+            border-bottom: 1px solid #FEFEFE;
+        }
+
+        .member-badges {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .badge {
+            font-size: 0.8rem;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+
+        .creator-badge {
+            background-color: #BBBCD5;
+            color: #131217;
+        }
+
+        .you-badge {
+            background-color: #FEFEFE;
+            color: #131217;
+        }
+
+        .member-actions {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .member-actions .empty-button {
+            padding: 0.5rem 1rem;
+            font-size: 0.9rem;
+            min-width: auto;
+        }
+
+        .alert {
+            padding: 1.5rem;
+            border-radius: 10px;
+            margin-bottom: 2rem;
+            border: 2px solid;
+        }
+
+        .alert-warning {
+            background-color: rgba(213, 213, 187, 0.1);
+            border-color: #d5d5bb;
+            color: #d5d5bb;
+        }
+
+        .alert-info {
+            background-color: rgba(187, 188, 213, 0.1);
+            border-color: #BBBCD5;
+            color: #BBBCD5;
+        }
+
+        .no-content {
+            text-align: center;
+            color: #BBBCD5;
+            font-style: italic;
+            padding: 2rem;
+        }
+
+        .danger-button {
+            border-color: #d5bbbb !important;
+            color: #d5bbbb !important;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .danger-button:hover {
+            background-color: #d5bbbb !important;
+            color: #131217 !important;
+        }
+
+        .success-button {
+            border-color: #bbd5bb !important;
+            color: #bbd5bb !important;
+        }
+
+        .success-button:hover {
+            background-color: #bbd5bb !important;
+            color: #131217 !important;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem 0.5rem;
+            }
+
+            .project-header {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .project-title {
+                font-size: 2rem;
+            }
+
+            .project-actions {
+                flex-direction: column;
+            }
+
+            .project-actions .full-button,
+            .project-actions .empty-button {
+                min-width: auto;
+                width: 100%;
+            }
+
+            .member-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+            }
+
+            .member-actions {
+                width: 100%;
+                justify-content: flex-end;
+            }
+        }
+        /* Create Chat Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(19, 18, 23, 0.8);
+            backdrop-filter: blur(5px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            animation: modalFadeIn 0.3s ease;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        @keyframes modalFadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        .modal-content {
+            background-color: #131217;
+            border: 2px solid #BBBCD5;
+            border-radius: 10px;
+            padding: 2rem;
+            max-width: 500px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            animation: modalSlideIn 0.3s ease;
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid #BBBCD5;
+        }
+
+        .modal-title {
+            color: #FEFEFE;
+            font-size: 1.5rem;
+            margin: 0;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: #BBBCD5;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0;
+            width: 2rem;
+            height: 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+
+        .modal-close:hover {
+            background-color: #BBBCD5;
+            color: #131217;
+        }
+
+        .modal-form {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .modal-form .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .modal-form label {
+            color: #BBBCD5;
+            font-weight: bold;
+        }
+
+        .modal-form .form-control {
+            padding: 0.75rem;
+            border: 2px solid #BBBCD5;
+            border-radius: 8px;
+            background-color: #FEFEFE;
+            color: #131217;
+            font-family: 'Unbound', sans-serif;
+            transition: border-color 0.3s ease;
+        }
+
+        .modal-form .form-control:focus {
+            outline: none;
+            border-color: #FEFEFE;
+        }
+
+        .modal-form .errors {
+            color: #d5bbbb;
+            font-size: 0.9rem;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+            margin-top: 1rem;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem 0.5rem;
+            }
+
+            .project-header {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+
+            .project-title {
+                font-size: 2rem;
+            }
+
+            .project-meta {
+                grid-template-columns: 1fr;
+            }
+
+            .project-actions {
+                flex-direction: column;
+            }
+
+            .project-actions .full-button,
+            .project-actions .empty-button {
+                min-width: auto;
+                width: 100%;
+            }
+
+            .member-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+            }
+
+            .member-actions {
+                width: 100%;
+                justify-content: flex-end;
+            }
+
+            .modal-content {
+                width: 95%;
+                padding: 1.5rem;
+            }
+
+            .modal-actions {
+                flex-direction: column;
+            }
+        }
+        #create-chat-btn {
+            font-size: 1rem;
+            font-family: 'Unbound', sans-serif;
+        }
+    </style>
+{% endblock %}
+
 {% block content %}
 <div class="container">
-    <div class="card mb-4">
-        <div class="card-header">
-            <div class="d-flex align-items-center wrap-reverse">
-                <div class="project-header-text-container">
-                    <h1>{{ project.title }}</h1>
-                    <div class="project-meta">
-                        <span><i class="fas fa-user"></i> Created by: <a href="{{ url_for('users.view_profile', user_id=project.creator.id) }}">{{ project.creator.username }}</a></span>
-                        <span><i class="fas fa-calendar"></i> Created on: {{ project.created_at.strftime('%Y-%m-%d') }}</span>
-                        <span><i class="fas fa-clock"></i> Deadline: {{ project.deadline.strftime('%Y-%m-%d') if project.deadline else 'N/A' }}</span>
-                        <span><i class="fas fa-tag"></i> Type: {{ project.project_type }}</span>
-                        <span><i class="fas fa-lock-open"></i> Visibility: {{ "Public" if project.is_public else "Private" }}</span>
-                    </div>
+    <!-- Project Header -->
+    <div class="project-header">
+        <div class="project-header-text">
+            <h1 class="project-title">{{ project.title }}</h1>
+            <div class="project-meta">
+                <div class="meta-item">
+                    <span>Created by:</span>
+                    <a href="{{ url_for('users.view_profile', user_id=project.creator.id) }}" class="meta-link">{{ project.creator.username }}</a>
                 </div>
-                {% if project.image %}
-                    <div class="project-image-container" style="text-align:center;">
-                        <img src="{{ url_for('static', filename='uploads/' + project.image) }}" alt="Project Image">
-                    </div>
-                {% else %}
-                    <div class="project-image-container" style="text-align:center;">
-                        <img src="{{ url_for('static', filename='uploads/default-project.svg') }}" alt="Default Project Image">
-                    </div>
-                {% endif %}
+                <div class="meta-item">
+                    <span>Created on:</span>
+                    <span>{{ project.created_at.strftime('%Y-%m-%d') }}</span>
+                </div>
+                <div class="meta-item">
+                    <span>Deadline:</span>
+                    <span>{{ project.deadline.strftime('%Y-%m-%d') if project.deadline else 'No deadline set' }}</span>
+                </div>
+                <div class="meta-item">
+                    <span>Type:</span>
+                    <span>{{ project.project_type }}</span>
+                </div>
+                <div class="meta-item">
+                    <span>Visibility:</span>
+                    <span>{{ "Public" if project.is_public else "Private" }}</span>
+                </div>
             </div>
-        </div>
-        <div class="card-body">
-            <h3>Description</h3>
-            <p>{{ project.description | nl2br }}</p>
             
-            <h3>Goals</h3>
-            <p>{{ project.goals | nl2br }}</p>
-
-            {% if project.tags %}
-                <div class="project-tags-section">
-                    <h3>Tags:</h3>
-                    <div class="tag-list">
-                        {% for tag in project.tags %}
-                            <span class="tinder-tag">{{ tag }}</span>
-                        {% endfor %}
-                    </div>
-                </div>
-            {% endif %}
-            
-            <div class="project-actions mt-4">
+            <div class="project-actions">
                 {% if current_user in project.members %}
-                    <a href="{{ url_for('projects.leave', id=project.id) }}" class="btn btn-danger" onclick="return confirm('Are you sure you want to leave this project?')">Leave Project</a>
+                    <a href="{{ url_for('projects.leave', id=project.id) }}" class="empty-button danger-button" onclick="return confirm('Are you sure you want to leave this project?')">Leave Project</a>
                 {% elif project.is_public %}
-                    {# Check if user has a pending application #}
                     {% set pending_application = namespace(found=false) %}
                     {% for notif in current_user.sent_notifications.filter_by(project_id=project.id, notification_type='invite', invite_type='project_application', status='not_answered').all() %}
-                        {% if notif.user_id == project.creator_id %} {# Notification is for the creator #}
+                        {% if notif.user_id == project.creator_id %}
                              {% set pending_application.found = true %}
                         {% endif %}
                     {% endfor %}
 
                     {% if pending_application.found %}
-                        <button class="btn btn-secondary" disabled>Application Pending</button>
+                        <button class="empty-button" disabled>Application Pending</button>
                     {% else %}
-                        <a href="{{ url_for('projects.apply', id=project.id) }}" class="btn btn-success">Apply to Project</a>
+                        <a href="{{ url_for('projects.apply', id=project.id) }}" class="full-button success-button">Apply to Project</a>
                     {% endif %}
                 {% elif not project.is_public and not current_user in project.members %}
-                     <button class="btn btn-secondary" disabled>Private Project</button>
+                     <button class="empty-button" disabled>Private Project</button>
                 {% endif %}
                 
                 {% if current_user in project.admins %}
-                    <a href="{{ url_for('projects.edit', id=project.id) }}" class="btn btn-info">Edit Project</a>
+                    <a href="{{ url_for('projects.edit', id=project.id) }}" class="full-button">Edit Project</a>
                 {% endif %}
                 {% if current_user.id == project.creator_id %}
-                    <a href="{{ url_for('projects.delete_project', id=project.id) }}" class="btn btn-danger" onclick="return confirm('Are you sure you want to delete this project? This action cannot be undone.')">Delete Project</a>
+                    <a href="{{ url_for('projects.delete_project', id=project.id) }}" class="empty-button danger-button" onclick="return confirm('Are you sure you want to delete this project? This action cannot be undone.')">Delete Project</a>
                 {% endif %}
             </div>
         </div>
+        
+        {% if project.image %}
+            <div class="project-image-container">
+                <img src="{{ url_for('static', filename='uploads/' + project.image) }}" alt="Project Image">
+            </div>
+        {% else %}
+            <div class="project-image-container">
+                <img src="{{ url_for('static', filename='uploads/default-project.svg') }}" alt="Default Project Image">
+            </div>
+        {% endif %}
     </div>
 
-    <div class="card mb-4">
-        <div class="card-header">
-            <h2>Project Materials</h2>
+    <!-- Description Section -->
+    <div class="content-section">
+        <div class="section-header">
+            <h2 class="section-title">Description</h2>
         </div>
-        <div class="card-body">
+        <div class="section-body">
+            <div class="section-content">{{ project.description | nl2br }}</div>
+        </div>
+    </div>
+
+    <!-- Goals Section -->
+    <div class="content-section">
+        <div class="section-header">
+            <h2 class="section-title">Goals</h2>
+        </div>
+        <div class="section-body">
+            <div class="section-content">{{ project.goals | nl2br }}</div>
+        </div>
+    </div>
+
+    <!-- Tags Section -->
+    {% if project.tags %}
+    <div class="content-section">
+        <div class="section-header">
+            <h2 class="section-title">Tags</h2>
+        </div>
+        <div class="section-body">
+            <div class="project-tags">
+                {% for tag in project.tags %}
+                    <span class="project-tag">{{ tag }}</span>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Materials Section -->
+    <div class="content-section">
+        <div class="section-header">
+            <h2 class="section-title">Project Materials</h2>
+        </div>
+        <div class="section-body">
             {% if project.materials.count() > 0 %}
-                <div class="project-materials-list">
+                <div class="materials-list">
                     {% for material in project.materials.all() %}
-                        <div class="project-material-block" style="width:100%; margin-bottom:1em; padding:1em; background:#f8f9fa; border-radius:8px;">
-                            <a href="{{ url_for('projects.download_material', material_id=material.id) }}" class="material-download-link" style="font-weight:bold; color:var(--primary-color);" download>
-                                {{material.original_name}}
+                        <div class="material-item">
+                            <a href="{{ url_for('projects.download_material', material_id=material.id) }}" class="material-link" download>
+                                {{ material.original_name }}
                             </a>
-                            <span class="material-meta" style="display:block; color:#888; font-size:0.9em;">
+                            <div class="material-meta">
                                 Uploaded by <a href="{{ url_for('users.view_profile', user_id=material.uploaded_by.id) }}">{{ material.uploaded_by.username }}</a> on {{ material.uploaded_at.strftime('%d/%m/%Y %H:%M') }}
-                            </span>
+                            </div>
                         </div>
                     {% endfor %}
                 </div>
             {% else %}
-                <p>No materials uploaded yet.</p>
+                <div class="no-content">No materials uploaded yet.</div>
             {% endif %}
         </div>
     </div>
 
-    
     {% if current_user in project.members %}
-    <div class="card mb-4">
-        <div class="card-header d-flex justify-content-between align-items-center">
-            <h2>Project Chats</h2>
+    <!-- Chats Section -->
+    <div class="content-section">
+        <div class="section-header">
+            <h2 class="section-title">Project Chats</h2>
             {% if current_user in project.admins %}
-                <a href="{{ url_for('chats.create', project_id=project.id) }}" class="btn btn-primary btn-sm">Create New Chat</a>
+                <button id="create-chat-btn" class="full-button">Create New Chat</button>
             {% endif %}
         </div>
-        <div class="card-body">
-            {% if sorted_chats %} {# Check if sorted_chats is not empty #}
-                <ul class="list-group">
+        <div class="section-body">
+            {% if sorted_chats %}
+                <div class="chat-list">
                     {% for chat in sorted_chats if current_user in chat.members %}
-                        <li class="list-group-item">
-                            <a href="{{ url_for('chats.view', id=chat.id) }}">{{ chat.name }}</a>
-                            <small class="text-muted"> (Members: {{ chat.members|length }}) Created on: {{ chat.created_at.strftime('%Y-%m-%d') }}</small>
-                        </li>
+                        <div class="chat-item">
+                            <a href="{{ url_for('chats.view', id=chat.id) }}" class="chat-link">{{ chat.name }}</a>
+                            <div class="chat-info">Members: {{ chat.members|length }} • Created on: {{ chat.created_at.strftime('%Y-%m-%d') }}</div>
+                        </div>
                     {% else %}
-                        <div class="alert alert-warning">You are not a member of any chats of this project.</div>
+                        <div class="no-content">You are not a member of any chats in this project.</div>
                     {% endfor %}
-                </ul>
+                </div>
             {% else %}
-                <p>No chats available for this project yet, or you are not a member of any.</p>
+                <div class="no-content">No chats available for this project yet.</div>
             {% endif %}
         </div>
     </div>
     
-    <div class="card mb-4">
-        <div class="card-header">
-            <h2>Team Members ({{ project.members|length }})</h2>
+    <!-- Members Section -->
+    <div class="content-section">
+        <div class="section-header">
+            <h2 class="section-title">Team Members ({{ project.members|length }})</h2>
         </div>
-        <div class="card-body">
-            <div class="member-section">
+        <div class="section-body">
+            <div class="members-section">
                 <h4>Admins ({{ project.admins|length }})</h4>
-                <ul class="list-group">
+                <div class="members-list">
                     {% for admin in project.admins %}
-                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                            <div>
-                                <img src="{{ url_for('static', filename='uploads/' + admin.avatar) }}" class="chat-avatar-small" alt="{{ admin.username }}">
-                                <a href="{{ url_for('users.view_profile', user_id=admin.id) }}">{{ admin.username }}</a>
-                                {% if admin.id == project.creator_id %}<span class="badge bg-info text-dark ms-1">Creator</span>{% endif %}
-                                {% if admin.id == current_user.id %}<span class="badge bg-primary ms-1">You</span>{% endif %}
+                        <div class="member-item">
+                            <div class="member-info">
+                                <img src="{{ url_for('static', filename='uploads/' + admin.avatar) }}" class="member-avatar" alt="{{ admin.username }}">
+                                <div class="member-details">
+                                    <a href="{{ url_for('users.view_profile', user_id=admin.id) }}" class="member-name">{{ admin.username }}</a>
+                                    <div class="member-badges">
+                                        {% if admin.id == project.creator_id %}<span class="badge creator-badge">Creator</span>{% endif %}
+                                        {% if admin.id == current_user.id %}<span class="badge you-badge">You</span>{% endif %}
+                                    </div>
+                                </div>
                             </div>
                             {% if current_user in project.admins and admin != current_user and admin != project.creator %}
                                 <div class="member-actions">
-                                    <a href="{{ url_for('projects.manage_member', project_id=project.id, user_id=admin.id, action='remove_admin') }}" class="btn btn-sm btn-warning" onclick="return confirm('Are you sure you want to remove admin rights from {{ admin.username }}?')">Remove Admin</a>
+                                    <a href="{{ url_for('projects.manage_member', project_id=project.id, user_id=admin.id, action='remove_admin') }}" class="empty-button" onclick="return confirm('Are you sure you want to remove admin rights from {{ admin.username }}?')">Remove Admin</a>
                                 </div>
                             {% elif current_user in project.admins and admin == project.creator and project.creator != current_user %}
-                                <small class="text-muted">Creator (Cannot be demoted by others)</small>
+                                <div class="member-actions">
+                                    <span style="color: #BBBCD5; font-size: 0.9rem;">Creator (Cannot be demoted)</span>
+                                </div>
                             {% endif %}
-                        </li>
+                        </div>
                     {% endfor %}
-                </ul>
+                </div>
             </div>
             
-            <div class="member-section mt-4">
+            <div class="members-section">
                 <h4>Members</h4>
-                <ul class="list-group">
+                <div class="members-list">
                     {% for member in project.members %}
                         {% if member not in project.admins %}
-                            <li class="list-group-item d-flex justify-content-between align-items-center">
-                                <div>
-                                    <img src="{{ url_for('static', filename='uploads/' + member.avatar) }}" class="chat-avatar-small" alt="{{ member.username }}">
-                                    <a href="{{ url_for('users.view_profile', user_id=member.id) }}">{{ member.username }}</a>
-                                    {% if member.id == current_user.id %}<span class="badge bg-primary ms-1">You</span>{% endif %}
+                            <div class="member-item">
+                                <div class="member-info">
+                                    <img src="{{ url_for('static', filename='uploads/' + member.avatar) }}" class="member-avatar" alt="{{ member.username }}">
+                                    <div class="member-details">
+                                        <a href="{{ url_for('users.view_profile', user_id=member.id) }}" class="member-name">{{ member.username }}</a>
+                                        <div class="member-badges">
+                                            {% if member.id == current_user.id %}<span class="badge you-badge">You</span>{% endif %}
+                                        </div>
+                                    </div>
                                 </div>
                                 {% if current_user in project.admins and member.id != current_user.id %}
                                     <div class="member-actions">
-                                        <a href="{{ url_for('projects.manage_member', project_id=project.id, user_id=member.id, action='make_admin') }}" class="btn btn-sm btn-success">Make Admin</a>
-                                        <a href="{{ url_for('projects.manage_member', project_id=project.id, user_id=member.id, action='remove_member') }}" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to remove {{ member.username }} from the project?')">Remove Member</a>
+                                        <a href="{{ url_for('projects.manage_member', project_id=project.id, user_id=member.id, action='make_admin') }}" class="full-button">Make Admin</a>
+                                        <a href="{{ url_for('projects.manage_member', project_id=project.id, user_id=member.id, action='remove_member') }}" class="empty-button danger-button" onclick="return confirm('Are you sure you want to remove {{ member.username }} from the project?')">Remove</a>
                                     </div>
                                 {% endif %}
-                            </li>
+                            </div>
                         {% endif %}
                     {% endfor %}
-                        {% if project.members|length == project.admins|length and project.members|length > 0 %}
-                        <li class="list-group-item text-muted">All members are admins.</li>
+                    {% if project.members|length == project.admins|length and project.members|length > 0 %}
+                        <div class="no-content">All members are admins.</div>
                     {% elif project.members|length == 0 %}
-                            <li class="list-group-item text-muted">No members yet.</li>
+                        <div class="no-content">No members yet.</div>
                     {% endif %}
-                </ul>
+                </div>
             </div>
         </div>
     </div>
@@ -190,5 +818,86 @@
     {% else %}
     <div class="alert alert-info">Apply to this project to see chats and member details.</div>
     {% endif %}
+
+    {% if current_user in project.admins %}
+    <div id="create-chat-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Create New Chat for {{ project.title }}</h2>
+                <button id="modal-close" class="modal-close">&times;</button>
+            </div>
+            
+            <form id="create-chat-form" class="modal-form" method="POST" action="{{ url_for('chats.create', project_id=project.id) }}">
+                <input type="hidden" value="{{ csrf_token() }}" name="csrf_token">
+                <div class="form-group">
+                    <label for="chat-name">Chat Name</label>
+                    <input type="text" id="chat-name" name="name" class="form-control" required placeholder="Enter chat name...">
+                    <div id="name-errors" class="errors"></div>
+                </div>
+                
+                <div class="modal-actions">
+                    <button type="button" id="cancel-chat" class="empty-button">Cancel</button>
+                    <button type="submit" class="full-button success-button">Create Chat</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    {% endif %}
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const createChatBtn = document.getElementById('create-chat-btn');
+    const modal = document.getElementById('create-chat-modal');
+    const modalClose = document.getElementById('modal-close');
+    const cancelBtn = document.getElementById('cancel-chat');
+    const form = document.getElementById('create-chat-form');
+
+    if (createChatBtn && modal) {
+        // Open modal
+        createChatBtn.addEventListener('click', function() {
+            modal.classList.add('active');
+            document.getElementById('chat-name').focus();
+        });
+
+        // Close modal
+        function closeModal() {
+            modal.classList.remove('active');
+            form.reset();
+            document.getElementById('name-errors').textContent = '';
+        }
+
+        modalClose?.addEventListener('click', closeModal);
+        cancelBtn?.addEventListener('click', closeModal);
+
+        // Close modal when clicking outside
+        modal.addEventListener('click', function(e) {
+            if (e.target === modal) {
+                closeModal();
+            }
+        });
+
+        // Close modal with Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && modal.classList.contains('active')) {
+                closeModal();
+            }
+        });
+
+        // Handle form submission - simple approach
+        form?.addEventListener('submit', function(e) {
+            const submitBtn = form.querySelector('button[type="submit"]');
+            const originalText = submitBtn.textContent;
+            
+            submitBtn.textContent = 'Creating...';
+            submitBtn.disabled = true;
+            
+            // Let the form submit normally
+            // The Flask route will handle redirect on success or return to this page with errors
+        });
+    }
+});
+</script>
 {% endblock %}

@@ -88,7 +88,7 @@ def feed():
     has_prev = page > 1
     has_next = end < total
 
-    return render_template('projects/feed_tinder.html',
+    return render_template('projects/feed.html',
                            projects=paginated_projects,
                            page=page,
                            has_prev=has_prev,
@@ -145,15 +145,17 @@ def feed_ajax():
 
 @projects_bp.route('/create', methods=['GET', 'POST'])
 @login_required
-@limiter.limit("10 per hour", per_method=True, methods=["POST"])
+# @limiter.limit("10 per hour", per_method=True, methods=["POST"])
 def create():
+    # test logging
+    current_app.logger.info("Creating a new project")
     tags = load_tags()
     form = ProjectForm()
     form.tags.choices = [(tag, tag) for tag in tags['skills'] + tags['fields']]
     if form.validate_on_submit():
         allowed_tags = set(tag for tag, _ in form.tags.choices)
         if not set(form.tags.data).issubset(allowed_tags):
-            flash("Invalid tag selection.")
+            flash("Invalid tag selection.", 'error')
             return render_template('projects/create.html', title='Create Project', form=form)
 
         project_type_data = form.project_type.data
@@ -162,7 +164,7 @@ def create():
         
         combined_deadline = combine_date_time(form.deadline_date.data, form.deadline_time.data)
         if not combined_deadline:
-            flash("Invalid deadline date provided.")
+            flash("Invalid deadline date provided.", 'error')
             # It's unlikely to reach here if DateField has DataRequired, but good for safety
             return render_template('projects/create.html', title='Create Project', form=form)
         
@@ -200,8 +202,10 @@ def create():
         chat.members.append(current_user)
         db.session.add(chat)
         db.session.commit()
+
+        current_app.logger.info("Test!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
         
-        flash('Your project has been created!')
+        flash('Your project has been created!', 'success')
         return redirect(url_for('projects.view', id=project.id))
     
     return render_template('projects/create.html', title='Create Project', form=form)
@@ -212,7 +216,7 @@ def view(id):
     project = Project.query.get_or_404(id)
     
     if not project.is_public and current_user not in project.members:
-        flash('This project is private.')
+        flash('This project is private.', 'error')
         return redirect(url_for('projects.feed'))
     
     is_admin = current_user in project.admins
@@ -238,11 +242,11 @@ def apply(id):
     project = Project.query.get_or_404(id)
 
     if not project.is_public:
-        flash("This project is private and does not accept applications directly.")
+        flash("This project is private and does not accept applications directly.", 'error')
         return redirect(url_for('projects.view', id=project.id))
 
     if current_user in project.members:
-        flash('You are already a member of this project.')
+        flash('You are already a member of this project.', 'info')
         return redirect(url_for('projects.view', id=project.id))
 
     # Check if an application already exists and is pending
@@ -255,7 +259,7 @@ def apply(id):
     ).first()
 
     if existing_application:
-        flash('You have already applied to this project. Please wait for the creator to respond.')
+        flash('You have already applied to this project. Please wait for the creator to respond.', 'info')
         return redirect(url_for('projects.view', id=project.id))
 
     # Create notification for project creator
@@ -275,7 +279,7 @@ def apply(id):
     socketio.emit('new_notification', {'count': Notification.query.filter_by(user_id=project.creator_id, dismissed=False).count()}, room=f'user_{project.creator_id}')
 
 
-    flash('Your application has been sent to the project creator.')
+    flash('Your application has been sent to the project creator.', 'success')
     return redirect(url_for('projects.view', id=project.id))
 
 @projects_bp.route('/<int:id>/leave')
@@ -284,11 +288,11 @@ def leave(id):
     project = Project.query.get_or_404(id)
     
     if current_user.id == project.creator_id and len(project.admins) == 1 : # If creator is the only admin
-        flash('As the sole admin and creator, you cannot leave the project. Promote another admin first or delete the project.')
+        flash('As the sole admin and creator, you cannot leave the project. Promote another admin first or delete the project.', 'error')
         return redirect(url_for('projects.view', id=project.id))
     
     if current_user not in project.members:
-        flash('You are not a member of this project.')
+        flash('You are not a member of this project.', 'error')
         return redirect(url_for('projects.view', id=project.id))
     
     original_admins = list(project.admins) # Copy before modification
@@ -316,7 +320,7 @@ def leave(id):
             socketio.emit('new_notification', {'count': Notification.query.filter_by(user_id=admin.id, dismissed=False).count()}, room=f'user_{admin.id}')
 
     db.session.commit()
-    flash('You have left the project.')
+    flash('You have left the project.', 'success')
     return redirect(url_for('projects.feed'))
 
 @projects_bp.route('/<int:id>/edit', methods=['GET', 'POST'])
@@ -325,7 +329,7 @@ def edit(id):
     project = Project.query.get_or_404(id)
 
     if current_user != project.creator and current_user not in project.admins:
-        flash('You are not authorized to edit this project.')
+        flash('You are not authorized to edit this project.', 'error')
         return redirect(url_for('projects.view', id=project.id))
     
     tags = load_tags()
@@ -335,7 +339,7 @@ def edit(id):
     if form.validate_on_submit():
         allowed_tags = set(tag for tag, _ in form.tags.choices)
         if not set(form.tags.data).issubset(allowed_tags):
-            flash("Invalid tag selection.")
+            flash("Invalid tag selection.", 'error')
             return render_template(f'projects/{project.id}/edit.html', title='Edit Project', form=form, project=project)
         
         project_type_data = form.project_type.data
@@ -344,7 +348,7 @@ def edit(id):
         
         combined_deadline = combine_date_time(form.deadline_date.data, form.deadline_time.data)
         if not combined_deadline:
-            flash("Invalid deadline date provided.")
+            flash("Invalid deadline date provided.", 'error')
             return render_template('projects/edit_project.html', title='Edit Project', form=form, project=project)
         
         image_filename = ""
@@ -353,6 +357,8 @@ def edit(id):
             filepath = os.path.join(current_app.config['UPLOAD_FOLDER'], filename)
             form.image.data.save(filepath)
             image_filename += filename
+        else:
+            image_filename = project.image
         
         save_materials(form.materials.data, project, current_user)
         db.session.commit()
@@ -366,7 +372,7 @@ def edit(id):
         project.project_type = form.project_type.data
         project.is_public = form.is_public.data
         db.session.commit()
-        flash('Your project has been updated!')
+        flash('Your project has been updated!', 'success')
         return redirect(url_for('projects.view', id=project.id))
     elif request.method == 'GET':
         form.title.data = project.title
@@ -442,7 +448,7 @@ def search_results_page():
     query = request.args.get('query', '').strip()
     # If query is empty, maybe redirect to feed or show a message
     if not query:
-        flash("Please enter a search term.")
+        flash("Please enter a search term.", 'info')
         return redirect(request.referrer or url_for('projects.feed'))
 
 
@@ -490,15 +496,15 @@ def manage_member(project_id, user_id, action):
     user_to_manage = User.query.get_or_404(user_id)
 
     if current_user not in project.admins:
-        flash('Only project admins can manage members.')
+        flash('Only project admins can manage members.', 'error')
         return redirect(url_for('projects.view', id=project.id))
 
     if user_to_manage == project.creator and action == "remove":
-        flash("The project creator cannot be removed by other admins.")
+        flash("The project creator cannot be removed by other admins.", 'error')
         return redirect(url_for('projects.view', id=project.id))
     
     if user_to_manage == current_user and action == "remove" and len(project.admins) == 1:
-        flash("You cannot remove yourself as the sole admin.")
+        flash("You cannot remove yourself as the sole admin.", 'error')
         return redirect(url_for('projects.view', id=project.id))
 
 
@@ -507,31 +513,31 @@ def manage_member(project_id, user_id, action):
 
     if action == 'make_admin':
         if user_to_manage not in project.members:
-            flash(f'{user_to_manage.username} is not a member of this project.')
+            flash(f'{user_to_manage.username} is not a member of this project.', 'error')
         elif user_to_manage in project.admins:
-            flash(f'{user_to_manage.username} is already an admin.')
+            flash(f'{user_to_manage.username} is already an admin.', 'info')
         else:
             project.admins.append(user_to_manage)
             db.session.commit()
-            flash(f'{user_to_manage.username} is now an admin.')
+            flash(f'{user_to_manage.username} is now an admin.', 'success')
             notification_text = f"You have been made an admin in project '{project.title}'."
             info_type_for_user = "made_project_admin"
     elif action == 'remove_admin':
         if user_to_manage == project.creator:
-            flash("The project creator cannot lose admin rights unless they transfer ownership (not implemented).")
+            flash("The project creator cannot lose admin rights unless they transfer ownership (not implemented).", 'error')
         elif user_to_manage not in project.admins:
-            flash(f'{user_to_manage.username} is not an admin.')
+            flash(f'{user_to_manage.username} is not an admin.', 'error')
         elif len(project.admins) == 1:
-            flash(f"Cannot remove the last admin. Promote another member to admin first.")
+            flash(f"Cannot remove the last admin. Promote another member to admin first.", 'error')
         else:
             project.admins.remove(user_to_manage)
             db.session.commit()
-            flash(f'{user_to_manage.username} is no longer an admin.')
+            flash(f'{user_to_manage.username} is no longer an admin.', 'success')
             notification_text = f"You are no longer an admin in project '{project.title}'."
             info_type_for_user = "removed_project_admin"
     elif action == 'remove_member':
         if user_to_manage not in project.members:
-            flash(f'{user_to_manage.username} is not a member of this project.')
+            flash(f'{user_to_manage.username} is not a member of this project.', 'error')
         else:
             project.members.remove(user_to_manage)
             if user_to_manage in project.admins:
@@ -543,11 +549,11 @@ def manage_member(project_id, user_id, action):
                     chat.members.remove(user_to_manage)
             
             db.session.commit()
-            flash(f'{user_to_manage.username} has been removed from the project.')
+            flash(f'{user_to_manage.username} has been removed from the project.', 'success')
             notification_text = f"You have been removed from project '{project.title}'."
             info_type_for_user = "removed_from_project"
     else:
-        flash('Invalid action.')
+        flash('Invalid action.', 'error')
         return redirect(url_for('projects.view', id=project.id))
 
     if notification_text and info_type_for_user and user_to_manage != current_user:
@@ -572,7 +578,7 @@ def delete_project(id):
 
     # Authorization: Only project creator can delete
     if current_user.id != project.creator_id:
-        flash('You are not authorized to delete this project. Only the creator can.')
+        flash('You are not authorized to delete this project. Only the creator can.', 'error')
         return redirect(url_for('projects.view', id=project.id))
 
     try:
@@ -586,12 +592,12 @@ def delete_project(id):
 
         db.session.delete(project)
         db.session.commit()
-        flash(f"Project '{project.title}' and all its associated chats and data have been deleted.")
+        flash(f"Project '{project.title}' and all its associated chats and data have been deleted.", 'success')
         return redirect(url_for('projects.feed'))
     except Exception as e:
         db.session.rollback()
         current_app.logger.error(f"Error deleting project {id}: {str(e)}", exc_info=True)
-        flash("An error occurred while trying to delete the project. Please try again.")
+        flash("An error occurred while trying to delete the project. Please try again.", 'error')
         return redirect(url_for('projects.view', id=project.id))
 
 @projects_bp.route('/materials/<int:material_id>/download')
@@ -611,7 +617,7 @@ def delete_material(material_id):
 
     # Only project creator or admins can delete materials
     if current_user != project.creator and current_user not in project.admins:
-        flash("You are not authorized to delete this material.")
+        flash("You are not authorized to delete this material.", 'error')
         return redirect(url_for('projects.view', id=project.id))
     try:
         file_path = os.path.join(current_app.config['UPLOAD_FOLDER'], material.filename)
@@ -622,7 +628,7 @@ def delete_material(material_id):
 
     db.session.delete(material)
     db.session.commit()
-    flash("Material deleted.")
+    flash("Material deleted.", 'success')
     return redirect(url_for('projects.edit', id=project.id))
 
 @projects_bp.route('/my_projects')

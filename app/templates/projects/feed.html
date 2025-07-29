@@ -2,65 +2,351 @@
 
 {% block title %}Project Feed{% endblock %}
 
+{% block head %}
+    {{ super() }}
+    <style>
+        .feed-container {
+            margin-top: 6rem;
+            background-color: #131217;
+            color: #FEFEFE;
+            min-height: 100vh;
+            padding: 2rem 1rem;
+        }
+
+        .page-title {
+            text-align: center;
+            width: 100%;
+            padding-bottom: 2rem;
+            font-size: 2.5rem;
+            color: #BBBCD5;
+            margin-bottom: 2rem;
+        }
+
+        .project-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .project-card {
+            background-color: #131217;
+            border: 2px solid #BBBCD5;
+            border-radius: 10px;
+            overflow: hidden;
+            transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+        }
+
+        .project-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(187, 188, 213, 0.2);
+        }
+
+        .project-image {
+            width: 100%;
+            height: 200px;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            position: relative;
+        }
+
+        .project-image.generic {
+            background-color: #BBBCD5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .project-image.generic img {
+            width: 60px;
+            height: 60px;
+            filter: invert(4%) sepia(4%) saturate(3858%) hue-rotate(212deg) brightness(95%) contrast(92%);
+        }
+
+        .project-card-content {
+            padding: 1.5rem;
+        }
+
+        .project-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #FEFEFE;
+            margin-bottom: 1rem;
+            line-height: 1.3;
+        }
+
+        .project-tags {
+            margin-bottom: 1rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .project-tag {
+            display: inline-block;
+            background-color: #BBBCD5;
+            color: #131217;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            border: 2px solid #BBBCD5;
+        }
+
+        .project-description, .project-goals {
+            color: #BBBCD5;
+            margin-bottom: 1rem;
+            line-height: 1.5;
+        }
+
+        .project-goals-title {
+            color: #FEFEFE;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .project-meta {
+            margin: 1.5rem 0;
+            font-size: 0.9rem;
+            color: #BBBCD5;
+        }
+
+        .project-meta a {
+            color: #FEFEFE;
+            border-bottom: 1px solid transparent;
+            transition: border-bottom 0.3s ease;
+        }
+
+        .project-meta a:hover {
+            border-bottom: 1px solid #FEFEFE;
+        }
+
+        .project-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .project-actions .full-button,
+        .project-actions .empty-button {
+            flex: 1;
+            text-align: center;
+        }
+
+        .feed-navigation {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin: 3rem 0;
+            flex-wrap: wrap;
+        }
+
+        .feed-loader {
+            text-align: center;
+            margin: 2rem 0;
+            color: #BBBCD5;
+            font-size: 1.1rem;
+        }
+
+        .no-projects {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: #BBBCD5;
+        }
+
+        .no-projects h2 {
+            color: #FEFEFE;
+            margin-bottom: 1rem;
+        }
+
+        .load-more-container {
+            text-align: center;
+            margin: 3rem 0;
+        }
+
+        .end-of-feed {
+            text-align: center;
+            padding: 3rem 2rem;
+            color: #BBBCD5;
+            border-top: 2px solid #BBBCD5;
+            margin-top: 3rem;
+        }
+
+        .end-of-feed h3 {
+            color: #FEFEFE;
+            margin-bottom: 1rem;
+        }
+
+        @media (max-width: 768px) {
+            .project-grid {
+                grid-template-columns: 1fr;
+                padding: 0 1rem;
+            }
+            
+            .feed-navigation {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .project-actions {
+                flex-direction: column;
+            }
+            
+            .page-title {
+                font-size: 2rem;
+            }
+        }
+    </style>
+{% endblock %}
+
 {% block content %}
-<div class="container">
+<div class="feed-container">
     <h1 class="page-title">Project Feed</h1>
     
-    <div class="project-feed-filters">
-        <h3>Filter Projects</h3>
-        <form method="GET" action="{{ url_for('projects.feed') }}">
-            <div class="form-row">
-                <div class="form-group">
-                    <label for="topic">Topic/Keyword</label>
-                    <input type="text" class="form-control" id="topic" name="topic" value="{{ request.args.get('topic', '') }}">
-                </div>
-                
-                <div class="form-group">
-                    <label for="deadline">Deadline After</label>
-                    <input type="date" class="form-control" id="deadline" name="deadline" value="{{ request.args.get('deadline', '') }}">
-                </div>
-                
-                <div class="form-group">
-                    <button type="submit" class="btn btn-primary">Apply Filters</button>
-                    <a href="{{ url_for('projects.feed') }}" class="btn btn-secondary">Clear Filters</a>
-                </div>
-            </div>
-        </form>
+    <div id="project-grid" class="project-grid">
+        <!-- Projects will be loaded here -->
     </div>
     
-    <div class="project-grid">
-        {% for project in projects.items %}
-            <div class="card project-card">
-                <div class="card-header">
-                    <h2>{{ project.title }}</h2>
-                </div>
-                <div class="card-body">
-                    <div class="project-meta">
-                        <div><strong>Type:</strong> {{ project.project_type }}</div>
-                        <div><strong>Created:</strong> {{ project.created_at.strftime('%Y-%m-%d') }}</div>
-                        <div><strong>Deadline:</strong> {{ project.deadline.strftime('%Y-%m-%d') }}</div>
-                    </div>
-                    <p>{{ project.description | truncate(150) }}</p>
-                    <div class="project-actions">
-                        <a href="{{ url_for('projects.view', id=project.id) }}" class="btn btn-primary">View Details</a>
-                    </div>
-                </div>
-            </div>
-        {% else %}
-            <div class="alert alert-info">No projects found. Try adjusting your filters or create a new project.</div>
-        {% endfor %}
+    <div id="feed-loader" class="feed-loader" style="display: none;">
+        <p>Loading more projects...</p>
     </div>
     
-    <div class="pagination">
-        {% if projects.has_prev %}
-            <a href="{{ url_for('projects.feed', page=projects.prev_num, topic=request.args.get('topic', ''), deadline=request.args.get('deadline', '')) }}" class="btn btn-secondary">&laquo; Previous</a>
-        {% endif %}
-        
-        <span class="current-page">Page {{ projects.page }} of {{ projects.pages }}</span>
-        
-        {% if projects.has_next %}
-            <a href="{{ url_for('projects.feed', page=projects.next_num, topic=request.args.get('topic', ''), deadline=request.args.get('deadline', '')) }}" class="btn btn-secondary">Next &raquo;</a>
-        {% endif %}
+    <div id="end-of-feed" class="end-of-feed" style="display: none;">
+        <h3>You've reached the end!</h3>
+        <p>No more projects to show. Check back later for new opportunities!</p>
+        <a href="/projects/create" class="full-button" style="margin-top: 1.5rem; display: inline-block;">Create Your Own Project</a>
     </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const PROJECTS_PER_LOAD = 6;
+let loadedProjects = [];
+let loading = false;
+let totalProjects = null;
+
+function renderProjectCard(project, index) {
+    let tagsHtml = '';
+    if (project.tags && project.tags.length) {
+        tagsHtml = project.tags.map(tag => `<span class="project-tag">${tag}</span>`).join('');
+    }
+    
+    let imageHtml = '';
+    if (project.image) {
+        if (project.image.includes('.svg')) {
+            imageHtml = `<div class="project-image generic">
+                            <img src="${project.image}" alt="${project.title}">
+                        </div>`;
+        } else {
+            imageHtml = `<div class="project-image" style="background-image: url('${project.image}');"></div>`;
+        }
+    } else {
+        imageHtml = `<div class="project-image generic">
+                        <img src="{{ url_for('static', filename='uploads/default-project.svg') }}" alt="Generic Project">
+                    </div>`;
+    }
+    
+    return `
+    <div class="project-card" data-index="${index}">
+        ${imageHtml}
+        <div class="project-card-content">
+            <h2 class="project-title">${project.title}</h2>
+            ${tagsHtml ? `<div class="project-tags">${tagsHtml}</div>` : ''}
+            ${project.description ? `<p class="project-description">${project.description}</p>` : ''}
+            ${project.goals ? `
+                <div class="project-goals-title">Goals</div>
+                <p class="project-goals">${project.goals}</p>
+            ` : ''}
+            <div class="project-meta">
+                <div>By <a href="${project.creator ? '/users/view/' + project.creator.id : '#'}">${project.creator ? project.creator.username : 'Unknown'}</a></div>
+                <div>Deadline: ${project.deadline || 'No deadline set'}</div>
+            </div>
+            <div class="project-actions">
+                <a href="${project.apply_url}" class="full-button">Apply to Join</a>
+                <a href="${project.view_url}" class="full-button">View Details</a>
+            </div>
+        </div>
+    </div>
+    `;
+}
+
+function renderProjects() {
+    const grid = document.getElementById('project-grid');
+    
+    if (loadedProjects.length === 0) {
+        grid.innerHTML = `
+            <div class="no-projects">
+                <h2>No projects found!</h2>
+                <p>Try updating your <a href="/profile">preferences</a> or check back later for new projects.</p>
+                <a href="/projects/create" class="full-button" style="margin-top: 2rem; display: inline-block;">Create a Project</a>
+            </div>
+        `;
+        return;
+    }
+    
+    let html = '';
+    loadedProjects.forEach((project, index) => {
+        html += renderProjectCard(project, index);
+    });
+    grid.innerHTML = html;
+    
+    // Show end of feed message if all projects are loaded
+    const endOfFeed = document.getElementById('end-of-feed');
+    if (totalProjects !== null && loadedProjects.length >= totalProjects) {
+        endOfFeed.style.display = 'block';
+    } else {
+        endOfFeed.style.display = 'none';
+    }
+}
+
+function loadMoreProjects() {
+    if (loading || (totalProjects !== null && loadedProjects.length >= totalProjects)) return;
+    
+    loading = true;
+    document.getElementById('feed-loader').style.display = 'block';
+    
+    fetch(`/projects/feed_ajax?offset=${loadedProjects.length}&limit=${PROJECTS_PER_LOAD}`)
+        .then(response => response.json())
+        .then(data => {
+            totalProjects = data.total;
+            loadedProjects = loadedProjects.concat(data.projects);
+            document.getElementById('feed-loader').style.display = 'none';
+            loading = false;
+            renderProjects();
+        })
+        .catch(error => {
+            console.error('Error loading projects:', error);
+            document.getElementById('feed-loader').style.display = 'none';
+            loading = false;
+        });
+}
+
+// Infinite scroll functionality
+function handleScroll() {
+    const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+    const windowHeight = window.innerHeight;
+    const documentHeight = document.documentElement.scrollHeight;
+    
+    // Load more when user is 200px from the bottom
+    if (scrollTop + windowHeight >= documentHeight - 200) {
+        loadMoreProjects();
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Initial load
+    loadMoreProjects();
+    
+    // Add scroll event listener for infinite scroll
+    let scrollTimeout;
+    window.addEventListener('scroll', function() {
+        // Throttle scroll events for better performance
+        clearTimeout(scrollTimeout);
+        scrollTimeout = setTimeout(handleScroll, 100);
+    });
+});
+</script>
 {% endblock %}

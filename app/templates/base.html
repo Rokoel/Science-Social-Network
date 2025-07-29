@@ -41,11 +41,14 @@
                     <img src="{{ url_for('static', filename='images/notification-svgrepo-com.svg') }}" alt="Notification Icon">
                     <span id="notification-count" class="notification-count"></span>
                 </button>
-                <!-- <div id="notifications-content" class="dropdown-content">
-                    <div id="notification-list">
-                        <p class="loading">Loading notifications...</p>
+                <div id="notifications-content" class="dropdown-content">
+                    <div class="notification-header">
+                        Notifications
                     </div>
-                </div> -->
+                    <div id="notification-list">
+                        <div class="loading-notifications">Loading notifications...</div>
+                    </div>
+                </div>
             </div>
             <button id="header-change-lang" class="secondary-button icon-button empty-button" aria-label="Change Language">
                 <img src="{{ url_for('static', filename='images/language-svgrepo-com.svg') }}" alt="Language Icon">
@@ -91,206 +94,398 @@
     
     {% if current_user.is_authenticated %}
     <script>
-        $(document).ready(function() {
-            // Socket.IO connection
-            const socket = io();
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeFlashMessages();
+        });
+
+        function initializeFlashMessages() {
+            const flashMessages = document.querySelectorAll('.flash-message');
             
-            // Join personal room
-            socket.on('connect', function() {
-                // console.log('Connected to socket');
-            });
-            
-            // Notification dropdown
-            $('#notifications-btn').click(function() {
-                $('#notifications-content').toggle();
-                loadNotifications();
-            });
-            
-            // Close dropdown when clicking outside
-            $(document).click(function(e) {
-                if (!$(e.target).closest('.notifications-dropdown').length) {
-                    $('#notifications-content').hide();
-                }
-            });
-            
-            // Load notifications
-            function loadNotifications() {
-                $.ajax({
-                    url: '{{ url_for("notifications.feed") }}',
-                    type: 'GET',
-                    success: function(data) {
-                        renderNotifications(data);
-                        updateNotificationCount(data.length);
-                    },
-                    error: function() {
-                        $('#notification-list').html('<p>Error loading notifications</p>');
+            flashMessages.forEach((message, index) => {
+                // Add auto-dismiss class for visual progress bar
+                message.classList.add('auto-dismiss');
+                
+                // Add click-to-dismiss functionality
+                message.addEventListener('click', function() {
+                    dismissFlashMessage(message);
+                });
+                
+                // Add keyboard support for accessibility
+                message.setAttribute('tabindex', '0');
+                message.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        dismissFlashMessage(message);
                     }
                 });
+                
+                // Auto-dismiss after 4 seconds (staggered for multiple messages)
+                setTimeout(() => {
+                    if (message.parentNode) {
+                        dismissFlashMessage(message);
+                    }
+                }, 4000 + (index * 500)); // Stagger dismissal by 500ms for each message
+            });
+        }
+
+        function dismissFlashMessage(message) {
+            message.classList.add('removing');
+            
+            // Remove from DOM after animation completes
+            setTimeout(() => {
+                if (message.parentNode) {
+                    message.remove();
+                    
+                    // If no more flash messages, hide the container
+                    const container = document.querySelector('.flash-messages');
+                    if (container && container.children.length === 0) {
+                        container.style.display = 'none';
+                    }
+                }
+            }, 300); // Match the animation duration
+        }
+
+        // Function to add new flash messages dynamically (useful for AJAX responses)
+        function addFlashMessage(text, type = 'info') {
+            let container = document.querySelector('.flash-messages');
+            
+            // Create container if it doesn't exist
+            if (!container) {
+                container = document.createElement('div');
+                container.className = 'flash-messages';
+                document.body.appendChild(container);
             }
             
-            // Render notifications in dropdown
-            function renderNotifications(notifications) {
-                if (notifications.length === 0) {
-                    $('#notification-list').html('<p>No new notifications.</p>'); // Updated text
-                    return;
+            // Create the message element
+            const message = document.createElement('div');
+            message.className = `flash-message ${type} auto-dismiss`;
+            message.textContent = text;
+            message.setAttribute('tabindex', '0');
+            
+            // Add click-to-dismiss functionality
+            message.addEventListener('click', function() {
+                dismissFlashMessage(message);
+            });
+            
+            // Add keyboard support
+            message.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    dismissFlashMessage(message);
                 }
-                
-                let html = '';
-                notifications.forEach(function(notification) {
-                    let actions = '';
-                    if (notification.type === 'invite') {
-                        actions = `
-                            <div class="notification-actions">
-                                <button class="accept-btn" data-id="${notification.id}">Accept</button>
-                                <button class="reject-btn" data-id="${notification.id}">Reject</button>
-                            </div>
-                        `;
-                    }
-                    
-                    let senderLink = notification.sender ? notification.sender.username : 'System';
-                    if (notification.sender) {
-                        senderLink = `<a href="/users/view/${notification.sender.id}" onclick="event.stopPropagation();">${notification.sender.username}</a>`;
-                    }
+            });
+            
+            // Add to container
+            container.appendChild(message);
+            container.style.display = 'flex';
+            
+            // Auto-dismiss after 4 seconds
+            setTimeout(() => {
+                if (message.parentNode) {
+                    dismissFlashMessage(message);
+                }
+            }, 4000);
+            
+            return message;
+        }
 
-                    html += `
-                        <div class="notification-item" data-id="${notification.id}" data-project-id="${notification.project_id || ''}" data-chat-id="${notification.chat_id || ''}">
-                            <p>${notification.text} (from: ${senderLink})</p>
-                            <small>${new Date(notification.timestamp).toLocaleString()}</small>
-                            ${actions}
-                            <button class="dismiss-btn" data-id="${notification.id}">Dismiss</button>
+        // Utility functions for different message types
+        function showSuccessMessage(text) {
+            return addFlashMessage(text, 'success');
+        }
+
+        function showErrorMessage(text) {
+            return addFlashMessage(text, 'error');
+        }
+
+        function showWarningMessage(text) {
+            return addFlashMessage(text, 'warning');
+        }
+
+        function showInfoMessage(text) {
+            return addFlashMessage(text, 'info');
+        }
+
+        $(document).ready(function() {
+        // Socket.IO connection
+        const socket = io();
+        
+        // Join personal room
+        socket.on('connect', function() {
+            console.log('Connected to socket for notifications');
+        });
+        
+        // Notification dropdown toggle
+        $('#notifications-btn').click(function(e) {
+            e.stopPropagation();
+            const dropdown = $('#notifications-content');
+            
+            if (dropdown.hasClass('show')) {
+                dropdown.removeClass('show');
+            } else {
+                dropdown.addClass('show');
+                loadNotifications();
+            }
+        });
+        
+        // Close dropdown when clicking outside
+        $(document).click(function(e) {
+            if (!$(e.target).closest('.notifications-dropdown').length) {
+                $('#notifications-content').removeClass('show');
+            }
+        });
+        
+        // Prevent dropdown from closing when clicking inside
+        $('#notifications-content').click(function(e) {
+            e.stopPropagation();
+        });
+        
+        // Load notifications function with better error handling
+        function loadNotifications() {
+            $('#notification-list').html('<div class="loading-notifications">Loading notifications...</div>');
+            
+            $.ajax({
+                url: '{{ url_for("notifications.feed") }}',
+                type: 'GET',
+                timeout: 10000, // 10 second timeout
+                success: function(data) {
+                    renderNotifications(data);
+                    updateNotificationCount(data.length);
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error loading notifications:', error);
+                    $('#notification-list').html(`
+                        <div class="no-notifications">
+                            <p>Error loading notifications</p>
+                            <button class="empty-button" onclick="loadNotifications()" style="margin-top: 1rem; padding: 0.5rem 1rem;">
+                                Retry
+                            </button>
+                        </div>
+                    `);
+                }
+            });
+        }
+        
+        // Enhanced notification rendering
+        function renderNotifications(notifications) {
+            if (!notifications || notifications.length === 0) {
+                $('#notification-list').html(`
+                    <div class="no-notifications">
+                        <p>No new notifications</p>
+                        <small>You're all caught up!</small>
+                    </div>
+                `);
+                return;
+            }
+            
+            let html = '';
+            notifications.forEach(function(notification) {
+                let actions = '';
+                if (notification.type === 'invite') {
+                    actions = `
+                        <div class="notification-actions">
+                            <button class="accept-btn" data-id="${notification.id}">Accept</button>
+                            <button class="reject-btn" data-id="${notification.id}">Reject</button>
                         </div>
                     `;
-                });
-                
-                $('#notification-list').html(html);
-                
-                // Add event listeners to buttons
-                $('.dismiss-btn').click(function(e) {
-                    e.stopPropagation();
-                    const notificationId = $(this).data('id');
-                    dismissNotification(notificationId);
-                });
-                
-                $('.accept-btn').click(function(e) {
-                    e.stopPropagation();
-                    const notificationId = $(this).data('id');
-                    acceptInvite(notificationId);
-                });
-                
-                $('.reject-btn').click(function(e) {
-                    e.stopPropagation();
-                    const notificationId = $(this).data('id');
-                    rejectInvite(notificationId);
-                });
-            }
-            
-            // Update notification count
-            function updateNotificationCount(count) {
-                if (count > 0) {
-                    $('#notification-count').text(count).show();
-                } else {
-                    $('#notification-count').text('').hide();
                 }
-            }
-            
-            // Dismiss notification
-            function dismissNotification(id) {
-                $.ajax({
-                    url: `/notifications/${id}/dismiss`,
-                    type: 'GET',
-                    success: function(data) {
-                        if (data.success) {
-                            loadNotifications();
-                        }
-                    }
-                });
-            }
-            
-            // Accept invite
-            function acceptInvite(id) {
-                console.log("[CLIENT] Attempting to ACCEPT invite ID:", id);
-                $.ajax({
-                    url: `/notifications/${id}/accept`,
-                    type: 'GET',
-                    dataType: 'json', // Explicitly expect JSON
-                    success: function(data, textStatus, jqXHR) {
-                        console.log("[CLIENT] ACCEPT AJAX success. Raw data:", data);
-                        console.log("[CLIENT] data.success type:", typeof data.success, "value:", data.success);
-                        console.log("[CLIENT] data.message type:", typeof data.message, "value:", data.message);
-                        console.log("[CLIENT] data.redirect type:", typeof data.redirect, "value:", data.redirect);
+                
+                let senderLink = notification.sender ? notification.sender.username : 'System';
+                if (notification.sender) {
+                    senderLink = `<a href="/users/view/${notification.sender.id}" onclick="event.stopPropagation();">${notification.sender.username}</a>`;
+                }
 
-                        if (data && data.success === true) { // Be explicit: data exists AND data.success is true
-                            console.log("[CLIENT] ACCEPT marked as successful by server.");
-                            loadNotifications(); 
-                            if (data.redirect) {
-                                console.log("[CLIENT] Redirecting to:", data.redirect);
-                                window.location.href = data.redirect; 
-                            }
-                        } else {
-                            // This block is likely being hit
-                            console.error("[CLIENT] ACCEPT failed (server data.success was not true). Message from server:", data ? data.message : "No message field");
-                            alert( (data && data.message) ? data.message : 'Failed to accept invitation. Server response did not indicate success.');
-                        }
-                    },
-                    error: function(jqXHR, textStatus, errorThrown) {
-                        console.error("[CLIENT] ACCEPT AJAX error. Status:", textStatus, "Error:", errorThrown, "Response Text:", jqXHR.responseText);
-                        let errorMsg = 'Error processing request: ' + textStatus + " - " + errorThrown;
-                        try {
-                            const errorResponse = JSON.parse(jqXHR.responseText);
-                            if (errorResponse && errorResponse.message) {
-                                errorMsg = 'Error: ' + errorResponse.message;
-                            }
-                        } catch (e) {
-                            // JSON.parse failed, use original errorMsg
-                        }
-                        alert(errorMsg);
-                    }
-                });
-            }
-            
-            // Reject invite
-            function rejectInvite(id) {
-                console.log("[CLIENT] Attempting to REJECT invite ID:", id);
-                $.ajax({
-                    url: `/notifications/${id}/reject`,
-                    type: 'GET',
-                    dataType: 'json', // Explicitly expect JSON
-                    success: function(data, textStatus, jqXHR) {
-                        console.log("[CLIENT] REJECT AJAX success. Raw data:", data);
-                        console.log("[CLIENT] data.success type:", typeof data.success, "value:", data.success);
-                        console.log("[CLIENT] data.message type:", typeof data.message, "value:", data.message);
-
-                        if (data && data.success === true) { // Be explicit
-                            console.log("[CLIENT] REJECT marked as successful by server.");
-                            loadNotifications(); 
-                        } else {
-                            console.error("[CLIENT] REJECT failed (server data.success was not true). Message from server:", data ? data.message : "No message field");
-                            alert( (data && data.message) ? data.message : 'Failed to reject invitation. Server response did not indicate success.');
-                        }
-                    },
-                    error: function(jqXHR, textStatus, errorThrown) {
-                        console.error("[CLIENT] REJECT AJAX error. Status:", textStatus, "Error:", errorThrown, "Response Text:", jqXHR.responseText);
-                        let errorMsg = 'Error processing request: ' + textStatus + " - " + errorThrown;
-                        try {
-                            const errorResponse = JSON.parse(jqXHR.responseText);
-                            if (errorResponse && errorResponse.message) {
-                                errorMsg = 'Error: ' + errorResponse.message;
-                            }
-                        } catch (e) {
-                            // JSON.parse failed
-                        }
-                        alert(errorMsg);
-                    }
-                });
-            }
-            
-            // Listen for new notifications
-            socket.on('new_notification', function(data) {
-                updateNotificationCount(data.count);
+                html += `
+                    <div class="notification-item" data-id="${notification.id}" data-project-id="${notification.project_id || ''}" data-chat-id="${notification.chat_id || ''}">
+                        <p>${notification.text}</p>
+                        <small>From: ${senderLink} • ${formatTimestamp(notification.timestamp)}</small>
+                        ${actions}
+                        <button class="dismiss-btn" data-id="${notification.id}">Dismiss</button>
+                    </div>
+                `;
             });
             
-            // Initial load
-            loadNotifications();
+            $('#notification-list').html(html);
+            attachNotificationHandlers();
+        }
+        
+        // Format timestamp helper
+        function formatTimestamp(timestamp) {
+            const date = new Date(timestamp);
+            const now = new Date();
+            const diffMs = now - date;
+            const diffMins = Math.floor(diffMs / 60000);
+            const diffHours = Math.floor(diffMins / 60);
+            const diffDays = Math.floor(diffHours / 24);
+            
+            if (diffMins < 1) return 'Just now';
+            if (diffMins < 60) return `${diffMins}m ago`;
+            if (diffHours < 24) return `${diffHours}h ago`;
+            if (diffDays < 7) return `${diffDays}d ago`;
+            return date.toLocaleDateString();
+        }
+        
+        // Attach event handlers to notification buttons
+        function attachNotificationHandlers() {
+            $('.dismiss-btn').off('click').on('click', function(e) {
+                e.stopPropagation();
+                const notificationId = $(this).data('id');
+                const button = $(this);
+                
+                button.prop('disabled', true).text('Dismissing...');
+                dismissNotification(notificationId, button);
+            });
+            
+            $('.accept-btn').off('click').on('click', function(e) {
+                e.stopPropagation();
+                const notificationId = $(this).data('id');
+                const button = $(this);
+                
+                button.prop('disabled', true).text('Accepting...');
+                acceptInvite(notificationId, button);
+            });
+            
+            $('.reject-btn').off('click').on('click', function(e) {
+                e.stopPropagation();
+                const notificationId = $(this).data('id');
+                const button = $(this);
+                
+                button.prop('disabled', true).text('Rejecting...');
+                rejectInvite(notificationId, button);
+            });
+        }
+        
+        // Update notification count with animation
+        function updateNotificationCount(count) {
+            const countElement = $('#notification-count');
+            if (count > 0) {
+                countElement.text(count > 99 ? '99+' : count).show();
+            } else {
+                countElement.hide();
+            }
+        }
+        
+        // Enhanced dismiss notification with UI feedback
+        function dismissNotification(id, button) {
+            $.ajax({
+                url: `/notifications/${id}/dismiss`,
+                type: 'GET',
+                success: function(data) {
+                    if (data.success) {
+                        // Remove notification with animation
+                        button.closest('.notification-item').fadeOut(300, function() {
+                            $(this).remove();
+                            // Reload to update count
+                            loadNotifications();
+                        });
+                    } else {
+                        button.prop('disabled', false).text('Dismiss');
+                        alert('Failed to dismiss notification');
+                    }
+                },
+                error: function() {
+                    button.prop('disabled', false).text('Dismiss');
+                    alert('Error dismissing notification');
+                }
+            });
+        }
+        
+        // Enhanced accept invite with better feedback
+        function acceptInvite(id, button) {
+            $.ajax({
+                url: `/notifications/${id}/accept`,
+                type: 'GET',
+                dataType: 'json',
+                success: function(data) {
+                    if (data && data.success === true) {
+                        button.removeClass('accept-btn').addClass('dismiss-btn')
+                            .text('Accepted!').prop('disabled', false);
+                        
+                        // Hide the reject button
+                        button.siblings('.reject-btn').fadeOut();
+                        
+                        setTimeout(() => {
+                            loadNotifications();
+                            if (data.redirect) {
+                                window.location.href = data.redirect;
+                            }
+                        }, 1000);
+                    } else {
+                        button.prop('disabled', false).text('Accept');
+                        alert(data.message || 'Failed to accept invitation');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('Accept error:', error);
+                    button.prop('disabled', false).text('Accept');
+                    
+                    let errorMsg = 'Error accepting invitation';
+                    try {
+                        const errorResponse = JSON.parse(xhr.responseText);
+                        if (errorResponse && errorResponse.message) {
+                            errorMsg = errorResponse.message;
+                        }
+                    } catch (e) {
+                        // Use default error message
+                    }
+                    alert(errorMsg);
+                }
+            });
+        }
+        
+        // Enhanced reject invite
+        function rejectInvite(id, button) {
+            $.ajax({
+                url: `/notifications/${id}/reject`,
+                type: 'GET',
+                dataType: 'json',
+                success: function(data) {
+                    if (data && data.success === true) {
+                        button.closest('.notification-item').fadeOut(300, function() {
+                            $(this).remove();
+                            loadNotifications();
+                        });
+                    } else {
+                        button.prop('disabled', false).text('Reject');
+                        alert(data.message || 'Failed to reject invitation');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('Reject error:', error);
+                    button.prop('disabled', false).text('Reject');
+                    
+                    let errorMsg = 'Error rejecting invitation';
+                    try {
+                        const errorResponse = JSON.parse(xhr.responseText);
+                        if (errorResponse && errorResponse.message) {
+                            errorMsg = errorResponse.message;
+                        }
+                    } catch (e) {
+                        // Use default error message
+                    }
+                    alert(errorMsg);
+                }
+            });
+        }
+        
+        // Listen for new notifications via Socket.IO
+        socket.on('new_notification', function(data) {
+            updateNotificationCount(data.count);
+            
+            // Add a subtle notification indicator
+            const notificationBtn = $('#notifications-btn');
+            notificationBtn.addClass('has-new-notification');
+            setTimeout(() => {
+                notificationBtn.removeClass('has-new-notification');
+            }, 3000);
+        });
+        
+        // Initial load
+        loadNotifications();
+        
+        // Make loadNotifications globally accessible for retry button
+        window.loadNotifications = loadNotifications;
+    });
 
             const $searchQueryInput = $('#universal-search-query');
             const $searchResultsDropdown = $('#universal-search-results-dropdown');
@@ -353,7 +548,6 @@
                     $searchResultsDropdown.hide(); // Hide dropdown on submit
                 });
             }
-        });
     </script>
     {% endif %}
     
