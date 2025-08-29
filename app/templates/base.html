@@ -88,9 +88,7 @@
         {% block content %}{% endblock %}
     </main>
     
-    <footer>
-        <p>&copy; {{ now.year }} Scientific Collaboration Platform</p>
-    </footer>
+    {% include 'footer.html' %}
     
     {% if current_user.is_authenticated %}
     <script>
