@@ -13,3 +13,4 @@ limits>=1.5
 email_validator==2.0.0
 eventlet==0.33.3
 requests
+dnspython<2.6.0
