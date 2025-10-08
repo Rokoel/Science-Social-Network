@@ -1,7 +1,7 @@
 # Installation Instructions
 ## Windows Installation
 ### Prerequisites
-- Python 3.8.10 or higher
+- Python 3.8.10 or higher (up to 3.11)
 - Git
 - Internet connection
 ### Step 1: Clone the Repository
@@ -35,7 +35,7 @@ The application will be accessible at http://localhost:5000 in your web browser.
 
 ## Linux Installation
 ### Prerequisites
-- Python 3.7 or higher
+- Python 3.7 or higher (up to 3.11)
 - Git
 - pip
 ### Step 1: Clone the Repository
