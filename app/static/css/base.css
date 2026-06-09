@@ -152,6 +152,26 @@ nav {
     align-items: center;
 }
 
+#header-change-lang {
+    position: relative;
+}
+
+#header-change-lang::after {
+    content: attr(data-lang);
+    position: absolute;
+    right: -0.45rem;
+    bottom: -0.45rem;
+    min-width: 1.35rem;
+    padding: 0.1rem 0.25rem;
+    border-radius: 4px;
+    background-color: #FEFEFE;
+    color: #131217;
+    border: 2px solid #BBBCD5;
+    font-size: 0.62rem;
+    line-height: 1;
+    text-align: center;
+}
+
 .icon-button img {
     width: 2rem;
     height: 2rem;

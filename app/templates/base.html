@@ -13,6 +13,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     {% block head %}{% endblock %}
     <link rel="stylesheet" href="{{ url_for('static', filename='css/responsive.css') }}">
+    <script src="{{ url_for('static', filename='js/translation.js') }}" defer></script>
 </head>
 <body class="with-header">
     <header class="landing-header">
@@ -51,7 +52,7 @@
                     </div>
                 </div>
             </div>
-            <button id="header-change-lang" class="secondary-button icon-button empty-button" aria-label="Change Language">
+            <button id="header-change-lang" class="secondary-button icon-button empty-button" aria-label="Change Language" data-lang="EN">
                 <img src="{{ url_for('static', filename='images/language-svgrepo-com.svg') }}" alt="Language Icon">
             </button>
             

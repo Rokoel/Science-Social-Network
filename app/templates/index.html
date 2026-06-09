@@ -6,13 +6,14 @@
     <title>Welcome to Science Collab</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/index.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/responsive.css') }}">
+    <script src="{{ url_for('static', filename='js/translation.js') }}" defer></script>
 </head>
 <body class="landing-page-standalone">
     <header class="landing-header">
         <nav>
             <a id="main-logo" href="{{ url_for('main.index') }}" class="empty-button">SciCollab</a>
 
-            <button id="header-change-lang" class="secondary-button language-button empty-button" aria-label="Change Language">
+            <button id="header-change-lang" class="secondary-button language-button empty-button" aria-label="Change Language" data-lang="EN">
                 <img src="{{ url_for('static', filename='images/language-svgrepo-com.svg') }}" alt="Language Icon">
             </button>
 

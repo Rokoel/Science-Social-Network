@@ -284,6 +284,7 @@ function renderProjects() {
                 <a href="/projects/create" class="full-button" style="margin-top: 2rem; display: inline-block;">Create a Project</a>
             </div>
         `;
+        applyProjectFeedTranslation(grid);
         return;
     }
     
@@ -292,6 +293,7 @@ function renderProjects() {
         html += renderProjectCard(project, index);
     });
     grid.innerHTML = html;
+    applyProjectFeedTranslation(grid);
     
     // Show end of feed message if all projects are loaded
     const endOfFeed = document.getElementById('end-of-feed');
@@ -299,6 +301,13 @@ function renderProjects() {
         endOfFeed.style.display = 'block';
     } else {
         endOfFeed.style.display = 'none';
+    }
+    applyProjectFeedTranslation(endOfFeed);
+}
+
+function applyProjectFeedTranslation(root) {
+    if (window.SciCollabI18n && typeof window.SciCollabI18n.apply === 'function') {
+        window.SciCollabI18n.apply(root);
     }
 }
 
