@@ -12,15 +12,16 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     {% block head %}{% endblock %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/responsive.css') }}">
 </head>
-<body>
+<body class="with-header">
     <header class="landing-header">
         <nav>
             <a id="main-logo" href="{{ url_for('main.index') }}" class="empty-button dropdown-button">SciCollab</a>
             <div class="nav-spacer"></div>
             {% if current_user.is_authenticated %}
             <div class="dropdown-container">
-                <a href="{{ url_for('projects.feed') }}" class="empty-button dropdown-button">Projects</a>
+                <a href="{{ url_for('projects.feed') }}" class="empty-button dropdown-button" aria-haspopup="true" aria-expanded="false">Projects</a>
                 <div class="nav-dropdown">
                     <a href="{{ url_for('projects.feed') }}" class="full-button">Project Feed</a>
                     <a href="{{ url_for('projects.my_projects') }}" class="full-button">My Projects</a>
@@ -28,7 +29,7 @@
                 </div>
             </div>
             <div class="dropdown-container">
-                <a href="{{ url_for('users.profile') }}" class="empty-button dropdown-button">Profile</a>
+                <a href="{{ url_for('users.profile') }}" class="empty-button dropdown-button" aria-haspopup="true" aria-expanded="false">Profile</a>
                 <div class="nav-dropdown">
                     <a href="{{ url_for('users.profile') }}" class="full-button">Change Profile</a>
                     <a href="{{ url_for('projects.my_projects') }}" class="full-button">My Projects</a>
@@ -544,6 +545,54 @@
                     }
                     // Allow normal form submission to projects.search_results_page
                     $searchResultsDropdown.hide(); // Hide dropdown on submit
+                });
+            }
+
+            const mobileNavQuery = window.matchMedia('(max-width: 768px)');
+            const mobileDropdowns = document.querySelectorAll('.dropdown-container');
+
+            function closeMobileNavDropdowns(exceptContainer) {
+                mobileDropdowns.forEach(function(container) {
+                    if (container === exceptContainer) return;
+                    container.classList.remove('dropdown-open');
+                    const trigger = container.querySelector('.dropdown-button');
+                    if (trigger) {
+                        trigger.setAttribute('aria-expanded', 'false');
+                    }
+                });
+            }
+
+            mobileDropdowns.forEach(function(container) {
+                const trigger = container.querySelector('.dropdown-button');
+                if (!trigger) return;
+
+                trigger.addEventListener('click', function(event) {
+                    if (!mobileNavQuery.matches) return;
+
+                    event.preventDefault();
+                    const willOpen = !container.classList.contains('dropdown-open');
+                    closeMobileNavDropdowns(container);
+                    container.classList.toggle('dropdown-open', willOpen);
+                    trigger.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
+                });
+            });
+
+            document.addEventListener('click', function(event) {
+                if (!mobileNavQuery.matches) return;
+                if (!event.target.closest('.dropdown-container')) {
+                    closeMobileNavDropdowns();
+                }
+            });
+
+            document.addEventListener('keydown', function(event) {
+                if (event.key === 'Escape') {
+                    closeMobileNavDropdowns();
+                }
+            });
+
+            if (mobileNavQuery.addEventListener) {
+                mobileNavQuery.addEventListener('change', function() {
+                    closeMobileNavDropdowns();
                 });
             }
     </script>

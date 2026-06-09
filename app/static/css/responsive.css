@@ -1,71 +1,721 @@
-/* Responsive Styles */
+/* Shared responsive layer loaded after page styles. */
 
-/* Small screens (mobile) */
-@media (max-width: 576px) {
+html {
+    overflow-x: hidden;
+}
+
+body {
+    width: 100%;
+}
+
+img,
+video,
+canvas,
+svg {
+    max-width: 100%;
+}
+
+input,
+select,
+textarea,
+button {
+    max-width: 100%;
+}
+
+.container,
+.feed-container,
+.project-container,
+.profile-container,
+.chat-layout,
+.split-container,
+.project-main,
+.profile-main,
+.profile-sidebar,
+.auth-card,
+.card,
+.content-section {
+    min-width: 0;
+}
+
+.project-title,
+.chat-title,
+.page-title,
+.section-title,
+.material-title,
+.member-name,
+.profile-info,
+.auth-card,
+.card,
+.message-content {
+    overflow-wrap: anywhere;
+}
+
+.landing-page-standalone #landing-image,
+#landing-image {
+    width: 100%;
+    height: 100%;
+}
+
+.full-button,
+.empty-button,
+.btn {
+    max-width: 100%;
+    overflow-wrap: anywhere;
+}
+
+@media (max-width: 992px) {
     header {
-      flex-direction: column;
-      padding: 0.5rem;
+        position: absolute;
     }
-    
-    nav ul {
-      margin-top: 1rem;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 0.5rem;
+
+    nav {
+        justify-content: flex-start;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        padding: 0.75rem;
     }
-    
-    main {
-      padding: 1rem;
+
+    #main-logo {
+        margin-right: auto;
     }
-    
-    .project-grid {
-      grid-template-columns: 1fr;
+
+    .nav-spacer {
+        display: none;
     }
-    
-    .profile-container {
-      grid-template-columns: 1fr;
+
+    .dropdown-container {
+        position: relative;
     }
-    
+
+    .nav-dropdown {
+        left: 0;
+        align-items: stretch;
+        min-width: 13rem;
+        z-index: 1100;
+    }
+
     .dropdown-content {
-      min-width: 250px;
-      right: -100px;
+        right: 0;
+        max-width: min(400px, calc(100vw - 1rem));
     }
-    
+
+    .project-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .split-container {
+        gap: 1rem;
+    }
+
+    .split-container > .card {
+        flex: 1 1 100%;
+    }
+
+    .profile-main,
+    .profile-sidebar {
+        width: min(100%, 900px);
+    }
+
+    .profile-avatar-container img {
+        width: 8rem;
+        height: 8rem;
+    }
+
+    #profile-form {
+        grid-template-areas:
+            "avatar-upload"
+            "username"
+            "email"
+            "name"
+            "surname"
+            "university"
+            "degree";
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    :root {
+        --mobile-header-offset: 7.25rem;
+        --landing-header-offset: 5.75rem;
+    }
+
+    body {
+        font-size: 0.95rem;
+    }
+
+    body.with-header {
+        background-color: #131217;
+    }
+
+    body.with-header main {
+        padding-top: var(--mobile-header-offset);
+        background-color: #131217;
+    }
+
+    footer > a {
+        min-width: 0;
+        width: 100%;
+        padding: 0.75rem 1rem;
+    }
+
+    .full-button,
+    .empty-button,
+    .btn {
+        padding: 0.75rem;
+        border-width: 2px;
+    }
+
+    a.full-button:hover,
+    input.full-button:hover,
+    button.full-button:hover,
+    a.empty-button:hover,
+    button.empty-button:hover {
+        border-width: 2px;
+    }
+
+    nav {
+        gap: 0.5rem;
+        align-items: center;
+    }
+
+    nav > * {
+        margin-left: 0;
+        margin-right: 0;
+        min-width: 0;
+    }
+
+    #main-logo {
+        flex: 1 1 auto;
+        width: auto;
+        min-width: 0;
+        text-align: left;
+    }
+
+    nav .empty-button,
+    nav .full-button {
+        padding: 0.6rem 0.7rem;
+        font-size: 0.85rem;
+    }
+
+    .icon-button img,
+    .language-button img {
+        width: 1.6rem;
+        height: 1.6rem;
+    }
+
+    .dropdown-container {
+        align-items: stretch;
+        flex: 1 1 calc(50% - 0.5rem);
+        order: 3;
+        position: relative;
+    }
+
+    .dropdown-container > .dropdown-button {
+        width: 100%;
+    }
+
+    .dropdown-container:hover > .nav-dropdown,
+    .dropdown-container:focus-within > .nav-dropdown,
+    .dropdown-container > *:hover > .nav-dropdown {
+        display: none;
+    }
+
+    .dropdown-container.dropdown-open {
+        flex-basis: 100%;
+    }
+
+    .dropdown-container.dropdown-open > .nav-dropdown {
+        display: flex;
+    }
+
+    .nav-dropdown {
+        position: static;
+        width: 100%;
+        min-width: 0;
+        padding-top: 0.5rem;
+        gap: 0.5rem;
+        transform: none;
+        animation: none;
+        z-index: 1100;
+    }
+
+    .nav-dropdown .full-button {
+        width: 100%;
+        padding: 0.65rem 0.75rem;
+        text-align: center;
+        background-color: #FEFEFE;
+    }
+
+    .notifications-dropdown {
+        position: static;
+    }
+
+    .notifications-dropdown,
+    #header-change-lang {
+        flex: 0 0 auto;
+        order: 2;
+    }
+
+    .dropdown-content {
+        position: fixed;
+        top: var(--mobile-header-offset);
+        left: 0.5rem;
+        right: 0.5rem;
+        min-width: 0;
+        max-width: none;
+        width: auto;
+        max-height: calc(100vh - var(--mobile-header-offset) - 0.75rem);
+        margin-top: 0;
+    }
+
+    .flash-messages {
+        top: 0.5rem;
+        right: 0.5rem;
+        left: 0.5rem;
+        max-width: none;
+    }
+
+    .container,
+    .feed-container {
+        margin-top: 0;
+        padding: 1rem;
+    }
+
+    .container > .project-container,
+    .container > .profile-container {
+        margin-top: 0;
+    }
+
+    .project-container,
+    .profile-container {
+        margin-top: 0;
+        padding: 0 1rem 2rem;
+    }
+
+    .page-title {
+        font-size: 1.8rem;
+        padding-top: 1rem;
+        padding-bottom: 1rem;
+        margin-bottom: 1rem;
+        line-height: 1.2;
+    }
+
+    .card-body,
+    .card-header,
+    .section-body,
+    .section-header,
+    .project-card-content,
+    .profile-main,
+    .project-main,
+    .profile-sidebar,
+    .existing-materials-section {
+        padding: 1rem;
+    }
+
+    .project-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+        padding: 0;
+    }
+
+    .project-card:hover,
+    .chat-item:hover,
+    .material-card:hover {
+        transform: none;
+    }
+
+    .project-actions,
+    .form-actions,
+    .modal-actions,
+    .feed-navigation {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.75rem;
+    }
+
+    .project-actions .full-button,
+    .project-actions .empty-button,
+    .form-actions .full-button,
+    .form-actions .empty-button,
+    .feed-navigation .full-button,
+    .feed-navigation .empty-button {
+        width: 100%;
+        min-width: 0;
+    }
+
+    .project-item {
+        grid-template-areas:
+            "title"
+            "privacy"
+            "date"
+            "button";
+        grid-template-columns: 1fr;
+        align-items: stretch;
+    }
+
+    .project-button,
+    .full-width {
+        width: 100%;
+    }
+
+    .profile-sidebar {
+        width: 100%;
+        flex-direction: column;
+        align-items: stretch;
+        text-align: left;
+    }
+
+    .profile-main {
+        width: 100%;
+    }
+
+    .profile-info,
+    .achievements-section {
+        min-width: 0;
+        width: 100%;
+    }
+
+    .profile-avatar-container img {
+        width: 7rem;
+        height: 7rem;
+    }
+
+    .tag-list,
+    .tags-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    form label.tag,
+    .tag {
+        display: inline-flex;
+        align-items: center;
+        max-width: 100%;
+        white-space: normal;
+        line-height: 1.4;
+        margin-right: 0;
+        margin-bottom: 0.5rem;
+        overflow-wrap: anywhere;
+        break-inside: avoid;
+        vertical-align: top;
+    }
+
+    .privacy-toggle {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .privacy-toggle label {
+        width: auto;
+        white-space: normal;
+        padding: 0;
+    }
+
+    .auth-container {
+        min-height: 100svh;
+        padding: 1rem;
+    }
+
     .auth-card {
-      padding: 1rem;
+        width: min(100%, 28rem);
+        padding: 1rem;
     }
-  }
-  
-  /* Medium screens (tablets) */
-  @media (min-width: 577px) and (max-width: 992px) {
-    .project-grid {
-      grid-template-columns: repeat(2, 1fr);
+
+    .auth-card h2 {
+        font-size: 1.5rem;
     }
-    
-    .profile-container {
-      grid-template-columns: 1fr 1fr;
+
+    .chat-layout {
+        height: calc(100svh - 7.5rem);
+        min-height: 32rem;
     }
-    
-    .dropdown-content {
-      right: -50px;
+
+    .chat-header {
+        padding: 1rem;
     }
-  }
-  
-  /* Large screens adjustments */
-  @media (min-width: 993px) {
-    .project-grid {
-      grid-template-columns: repeat(3, 1fr);
+
+    .chat-title {
+        font-size: 1.35rem;
     }
-  }
-  
-  /* Adjustments for all screen sizes */
-  @media (max-width: 768px) {
-    .chat-container {
-      height: 80vh;
+
+    .chat-meta {
+        flex-direction: column;
+        gap: 0.4rem;
     }
-    
+
+    .chat-actions {
+        width: 100%;
+        align-items: stretch;
+    }
+
+    .chat-actions .empty-button {
+        width: 100%;
+    }
+
+    .chat-messages {
+        padding: 0.75rem;
+    }
+
     .message {
-      max-width: 90%;
+        max-width: 92%;
+        gap: 0.5rem;
     }
-  }
-  
+
+    .message-avatar img {
+        width: 2rem;
+        height: 2rem;
+    }
+
+    .message-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.15rem;
+    }
+
+    .message-time {
+        margin-left: 0;
+    }
+
+    .message-image {
+        max-width: min(100%, 14rem);
+        height: auto;
+    }
+
+    .message-input-container {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .input-actions {
+        justify-content: flex-end;
+    }
+
+    .send-button {
+        flex: 1;
+    }
+
+    .members-sidebar {
+        top: var(--mobile-header-offset);
+        right: 0.5rem;
+        left: 0.5rem;
+        width: auto;
+        height: calc(100svh - var(--mobile-header-offset) - 0.5rem);
+    }
+
+    .pagination {
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .project-header-text {
+        min-width: 0;
+        width: 100%;
+    }
+
+    .project-image-container,
+    .project-image-container img {
+        width: 100%;
+    }
+
+    .project-image-container img {
+        max-width: 100%;
+        max-height: none;
+        aspect-ratio: 16 / 10;
+    }
+
+    .section-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 1rem;
+    }
+
+    .member-info,
+    .material-card,
+    .material-meta {
+        min-width: 0;
+    }
+
+    .member-actions {
+        justify-content: stretch;
+    }
+
+    .member-actions .empty-button {
+        width: 100%;
+    }
+
+    .modal-content {
+        width: calc(100vw - 1rem);
+        padding: 1rem;
+    }
+
+    .landing-page-standalone header {
+        padding: 0;
+    }
+
+    .landing-page-standalone nav {
+        justify-content: flex-start;
+    }
+
+    #landing-welcome {
+        min-height: 100svh;
+        padding: var(--landing-header-offset) 1rem 2rem;
+        align-items: stretch;
+    }
+
+    #landing-content {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 2rem;
+        padding: 0;
+        width: 100%;
+    }
+
+    #landing-text {
+        font-size: 1.35rem;
+    }
+
+    #landing-text h1 {
+        line-height: 1.15;
+    }
+
+    #register-holder {
+        width: 100%;
+        align-items: stretch;
+    }
+
+    #register-button {
+        width: 100%;
+        font-size: 1.3rem;
+    }
+
+    .landing-fact {
+        padding: 1.25rem 1rem;
+        font-size: 1rem;
+        text-align: left;
+    }
+
+    .landing-fact:nth-child(even),
+    .landing-fact:nth-child(odd) {
+        text-align: left;
+    }
+
+    .landing-fact:nth-child(even) h2,
+    .landing-fact:nth-child(odd) h2 {
+        border-left: #BBBCD5 4px solid;
+        border-right: 0;
+        padding-left: 1rem;
+        padding-right: 0;
+    }
+}
+
+@media (max-width: 576px) {
+    :root {
+        --mobile-header-offset: 7.5rem;
+        --landing-header-offset: 5.5rem;
+    }
+
+    body {
+        font-size: 0.9rem;
+    }
+
+    nav {
+        padding: 0.5rem;
+    }
+
+    nav .empty-button,
+    nav .full-button {
+        font-size: 0.8rem;
+        padding: 0.5rem;
+    }
+
+    .dropdown-container {
+        flex: 1 1 calc(50% - 0.5rem);
+    }
+
+    .container,
+    .feed-container {
+        margin-top: 0;
+        padding: 0.75rem;
+    }
+
+    .container > .project-container,
+    .container > .profile-container {
+        margin-top: 0;
+    }
+
+    .project-container,
+    .profile-container {
+        margin-top: 0;
+        padding: 0 0.75rem 1.5rem;
+    }
+
+    .page-title {
+        font-size: 1.5rem;
+    }
+
+    .project-title {
+        font-size: 1.45rem;
+    }
+
+    .project-card-content,
+    .card-body,
+    .section-body {
+        padding: 0.875rem;
+    }
+
+    .material-card,
+    .member-item {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .delete-material-btn {
+        width: 100% !important;
+    }
+
+    .form-control,
+    .message-input {
+        font-size: 1rem;
+    }
+
+    #landing-welcome {
+        padding-top: var(--landing-header-offset);
+    }
+
+    #landing-text {
+        font-size: 1.1rem;
+    }
+
+    #register-button {
+        font-size: 1.1rem;
+    }
+}
+
+@media (max-width: 380px) {
+    nav .empty-button,
+    nav .full-button {
+        font-size: 0.74rem;
+    }
+
+    .icon-button img,
+    .language-button img {
+        width: 1.35rem;
+        height: 1.35rem;
+    }
+
+    .container,
+    .feed-container,
+    .project-container,
+    .profile-container {
+        padding-left: 0.5rem;
+        padding-right: 0.5rem;
+    }
+}
+
+@media (min-width: 1200px) {
+    .project-grid {
+        grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+    }
+}

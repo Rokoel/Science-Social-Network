@@ -11,6 +11,10 @@ main {
     color: #FEFEFE;
 }
 
+.container > .project-container {
+    margin-top: 0;
+}
+
 .project-main {
         padding: 2rem;
     }
@@ -36,9 +40,11 @@ label {
 }
 
 form label.tag, .tag {
-    display: inline;
+    display: inline-flex;
+    align-items: center;
     width: fit-content;
-    margin-bottom: 5rem;
+    max-width: 100%;
+    margin-bottom: 0.5rem;
     margin-right: 0.5rem;
     color: #FEFEFE;
     background-color: #BBBCD5;
@@ -48,9 +54,10 @@ form label.tag, .tag {
     transition: background-color 0.3s ease-in-out, color 0.3s ease-in-out;
     text-align: center;
     white-space: nowrap;
-    vertical-align: baseline;
-    line-height: 2rem;
+    vertical-align: top;
+    line-height: 1.35;
     border: #131217 2px solid;
+    break-inside: avoid;
 }
 form label.tag:hover {
     background-color: #BBBCD5;
