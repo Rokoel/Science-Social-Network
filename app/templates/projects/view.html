@@ -617,7 +617,7 @@
                 </div>
             </div>
             
-            <div class="project-actions">
+            <div class="project-actions action-buttons">
                 {% if current_user in project.members %}
                     <form method="post" action="{{ url_for('projects.leave', id=project.id) }}" class="action-form" data-confirm="Are you sure you want to leave this project?">
                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
