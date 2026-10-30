@@ -19,7 +19,10 @@
 
             {% if current_user.is_authenticated %}
             <a href="{{ url_for('projects.feed') }}" class="empty-button">Project Feed</a>
-            <a href="{{ url_for('auth.logout') }}" class="empty-button">Logout</a>
+            <form method="post" action="{{ url_for('auth.logout') }}" class="action-form">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="empty-button">Logout</button>
+            </form>
             {% else %}
             <a href="{{ url_for('auth.login') }}" class="empty-button">Login</a>
             {% endif %}
@@ -54,10 +57,6 @@
             <div class="landing-fact">
                 <h2 class="landing-fact-header">Create and join projects</h2>
                 <p class="landing-fact-desc">Start scientific projects and invite others to collaborate with you</p>
-            </div>
-            <div class="landing-fact">
-                <h2 class="landing-fact-header">Real-Time Chat</h2>
-                <p class="landing-fact-desc">Communicate with your team in real-time with project-specific chat rooms</p>
             </div>
         </div>
         <hr>

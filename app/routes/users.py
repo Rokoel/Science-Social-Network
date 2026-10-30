@@ -4,12 +4,22 @@ from app import db, limiter
 from app.models import User, Project, Chat
 from app.forms import EditProfileForm
 from app.utils import load_tags
+from app.uploads import DEFAULT_IMAGES, send_upload
 import os
 import json
 from app.utils import secure_filename
 import uuid
 
 users_bp = Blueprint('users', __name__, url_prefix='/users')
+
+
+@users_bp.route('/<int:user_id>/avatar')
+@login_required
+def avatar(user_id):
+    user = User.query.get_or_404(user_id)
+    if not user.avatar or user.avatar in DEFAULT_IMAGES:
+        return current_app.send_static_file('uploads/default-avatar.svg')
+    return send_upload(user.avatar, image=True)
 
 @users_bp.route('/profile', methods=['GET', 'POST'])
 @login_required

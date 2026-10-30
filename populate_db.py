@@ -13,8 +13,9 @@ def load_sample_projects():
 def populate():
     app = create_app()
     with app.app_context():
-        db.drop_all()
-        db.create_all()
+        # Run flask db upgrade first; seeding must never replace the schema.
+        if User.query.first() or Project.query.first():
+            raise RuntimeError('Sample data requires an empty, migrated database.')
 
         # Create three users
         users = [

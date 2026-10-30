@@ -649,3 +649,13 @@ a.empty-button.dropdown-button {
 .container {
     margin-top: 7rem;
 }
+/* Mutation controls are ordinary CSRF-protected forms. */
+.action-form {
+    display: inline;
+    margin: 0;
+}
+
+.message-text {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}

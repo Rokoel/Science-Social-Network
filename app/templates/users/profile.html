@@ -13,7 +13,7 @@
         <h1 class="page-title">Your Profile</h1>
         <div class="profile-sidebar">
             <div class="profile-avatar-container">
-                <img src="{{ url_for('static', filename='uploads/' + user_to_display.avatar) }}" alt="Profile Avatar" class="profile-avatar">
+                <img src="{{ url_for('users.avatar', user_id=user_to_display.id) }}" alt="Profile Avatar" class="profile-avatar">
             </div>
             
             <div class="profile-info">

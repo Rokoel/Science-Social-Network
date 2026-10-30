@@ -7,7 +7,8 @@ class Config:
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     
     # Upload configurations
-    UPLOAD_FOLDER = os.path.join('app', 'static', 'uploads')
+    # Resolved against the instance directory by create_app; never serve as static.
+    UPLOAD_FOLDER = os.environ.get('UPLOAD_FOLDER')
     MAX_CONTENT_LENGTH = 10 * 1024 * 1024  # 10MB limit
     
     # Redis config

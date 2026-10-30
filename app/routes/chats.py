@@ -1,14 +1,26 @@
-from flask import Blueprint, render_template, redirect, url_for, flash, request, current_app, jsonify
+from flask import Blueprint, render_template, redirect, url_for, flash, request, current_app, jsonify, abort
 from flask_login import current_user, login_required
 from app import db, limiter, socketio
 from app.models import Chat, Message, Project, User, Notification
 from app.forms import MessageForm, ChatForm
 from app.utils import secure_filename
+from app.uploads import send_upload
 import os
 import uuid
 from datetime import datetime
 
 chats_bp = Blueprint('chats', __name__, url_prefix='/chats')
+
+
+@chats_bp.route('/messages/<int:message_id>/attachment')
+@login_required
+def attachment(message_id):
+    message = Message.query.get_or_404(message_id)
+    chat = message.chat
+    if (not chat or not chat.project or current_user not in chat.members
+            or current_user not in chat.project.members):
+        abort(403)
+    return send_upload(message.file, image=request.args.get('preview') == '1')
 
 @chats_bp.route('/<int:id>', methods=['GET', 'POST'])
 @login_required
@@ -86,7 +98,7 @@ def create(project_id):
                           form=form,
                           project=project)
 
-@chats_bp.route('/<int:id>/invite/<int:user_id>')
+@chats_bp.route('/<int:id>/invite/<int:user_id>', methods=['POST'])
 @login_required
 def invite_user(id, user_id):
     chat = Chat.query.get_or_404(id)
@@ -123,7 +135,7 @@ def invite_user(id, user_id):
     flash(f"Invitation sent to {user.username}.", 'success')
     return redirect(url_for('chats.view', id=chat.id))
 
-@chats_bp.route('/<int:chat_id>/leave')
+@chats_bp.route('/<int:chat_id>/leave', methods=['POST'])
 @login_required
 def leave_chat(chat_id):
     chat = Chat.query.get_or_404(chat_id)
@@ -143,7 +155,7 @@ def leave_chat(chat_id):
         flash("You are the only member of this chat. The chat will be deleted.", 'warning')
         db.session.delete(chat)
         db.session.commit()
-        pass
+        return redirect(url_for('projects.view', id=project.id))
 
     chat.members.remove(current_user)
     db.session.commit()
@@ -153,7 +165,7 @@ def leave_chat(chat_id):
     return redirect(url_for('projects.view', id=project.id))
 
 
-@chats_bp.route('/<int:chat_id>/kick/<int:user_id>')
+@chats_bp.route('/<int:chat_id>/kick/<int:user_id>', methods=['POST'])
 @login_required
 def kick_user_from_chat(chat_id, user_id):
     chat = Chat.query.get_or_404(chat_id)
@@ -200,7 +212,7 @@ def kick_user_from_chat(chat_id, user_id):
 
     return redirect(url_for('chats.view', id=chat.id))
 
-@chats_bp.route('/<int:chat_id>/delete', methods=['GET', 'POST'])
+@chats_bp.route('/<int:chat_id>/delete', methods=['POST'])
 @login_required
 def delete_chat(chat_id):
     chat = Chat.query.get_or_404(chat_id)

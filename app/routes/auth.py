@@ -34,7 +34,7 @@ def login():
                            vk_redirect_uri_for_sdk=current_app.config['VK_REDIRECT_URI_FOR_SDK'],
                            current_app=current_app)
 
-@auth_bp.route('/logout')
+@auth_bp.route('/logout', methods=['POST'])
 def logout():
     logout_user()
     return redirect(url_for('auth.login'))

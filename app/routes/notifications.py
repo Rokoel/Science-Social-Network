@@ -27,7 +27,7 @@ def feed():
         'chat_id': n.chat_id
     } for n in notifications])
 
-@notifications_bp.route('/<int:id>/dismiss')
+@notifications_bp.route('/<int:id>/dismiss', methods=['POST'])
 @login_required
 def dismiss(id):
     notification = Notification.query.get_or_404(id)
@@ -41,7 +41,7 @@ def dismiss(id):
     
     return jsonify({'success': True})
 
-@notifications_bp.route('/<int:id>/accept')
+@notifications_bp.route('/<int:id>/accept', methods=['POST'])
 @login_required
 def accept(id):
     notification = Notification.query.get_or_404(id)
@@ -76,7 +76,7 @@ def accept(id):
             notification.dismissed = True
             # db.session.commit() # Commit will happen after inviter notification
 
-            redirect_url_val = url_for('chats.view', id=chat.id)
+            redirect_url = url_for('chats.view', id=chat.id)
             
             if notification.sender_id and notification.sender_id != current_user.id:
                 original_inviter = User.query.get(notification.sender_id)
@@ -93,7 +93,7 @@ def accept(id):
             
             db.session.commit() # Commit all changes for this block
             success = True
-            response_data = {'success': True, 'redirect': redirect_url_val}
+            response_data = {'success': True, 'redirect': redirect_url}
 
             # Emit socket event after successful commit and response prep
             if notification.sender_id and notification.sender_id != current_user.id and original_inviter:
@@ -113,7 +113,7 @@ def accept(id):
             if applicant not in project.members:
                 project.members.append(applicant)
                 # Add to default chat(s)
-                default_chats = Chat.query.filter_by(project_id=project.id, name=f"{project.title} Chat (General)").all()
+                default_chats = Chat.query.filter_by(project_id=project.id, name=f"{project.title} Chat").all()
                 for default_chat in default_chats:
                     if applicant not in default_chat.members:
                         default_chat.members.append(applicant)
@@ -143,7 +143,7 @@ def accept(id):
     else:
         return jsonify({'success': False, 'message': 'Could not process acceptance.'}), 500
 
-@notifications_bp.route('/<int:id>/reject')
+@notifications_bp.route('/<int:id>/reject', methods=['POST'])
 @login_required
 def reject(id):
     notification = Notification.query.get_or_404(id)
@@ -183,6 +183,7 @@ def reject(id):
             
             db.session.commit()
             response_data = {'success': True}
+            success = True
 
             if notification.sender_id and notification.sender_id != current_user.id and original_inviter:
                 socketio.emit('new_notification', {'count': Notification.query.filter_by(user_id=original_inviter.id, dismissed=False).count()}, room=f'user_{original_inviter.id}')

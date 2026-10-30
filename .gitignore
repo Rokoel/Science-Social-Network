@@ -20,6 +20,9 @@ venv/
 .env
 .flaskenv
 *.log
+.agents
+.aws
+.codex
 
 /instance/
 

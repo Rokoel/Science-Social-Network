@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Scientific Collaboration Platform{% endblock %}</title>
 
@@ -11,6 +12,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="{{ url_for('static', filename='js/ui.js') }}"></script>
     {% block head %}{% endblock %}
     <link rel="stylesheet" href="{{ url_for('static', filename='css/responsive.css') }}">
     <script src="{{ url_for('static', filename='js/translation.js') }}" defer></script>
@@ -34,7 +36,10 @@
                 <div class="nav-dropdown">
                     <a href="{{ url_for('users.profile') }}" class="full-button">Change Profile</a>
                     <a href="{{ url_for('projects.my_projects') }}" class="full-button">My Projects</a>
-                    <a href="{{ url_for('auth.logout') }}" class="full-button">Logout</a>
+                    <form method="post" action="{{ url_for('auth.logout') }}" class="action-form">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="full-button">Logout</button>
+                    </form>
                 </div>
             </div>
 
@@ -278,34 +283,9 @@
                 return;
             }
             
-            let html = '';
-            notifications.forEach(function(notification) {
-                let actions = '';
-                if (notification.type === 'invite') {
-                    actions = `
-                        <div class="notification-actions">
-                            <button class="accept-btn" data-id="${notification.id}">Accept</button>
-                            <button class="reject-btn" data-id="${notification.id}">Reject</button>
-                        </div>
-                    `;
-                }
-                
-                let senderLink = notification.sender ? notification.sender.username : 'System';
-                if (notification.sender) {
-                    senderLink = `<a href="/users/view/${notification.sender.id}" onclick="event.stopPropagation();">${notification.sender.username}</a>`;
-                }
-
-                html += `
-                    <div class="notification-item" data-id="${notification.id}" data-project-id="${notification.project_id || ''}" data-chat-id="${notification.chat_id || ''}">
-                        <p>${notification.text}</p>
-                        <small>From: ${senderLink} • ${formatTimestamp(notification.timestamp)}</small>
-                        ${actions}
-                        <button class="dismiss-btn" data-id="${notification.id}">Dismiss</button>
-                    </div>
-                `;
-            });
-            
-            $('#notification-list').html(html);
+            const list = document.getElementById('notification-list');
+            if (!list) return;
+            list.replaceChildren(...notifications.map(item => SciCollabUI.notification(item, formatTimestamp)));
             attachNotificationHandlers();
         }
         
@@ -369,7 +349,8 @@
         function dismissNotification(id, button) {
             $.ajax({
                 url: `/notifications/${id}/dismiss`,
-                type: 'GET',
+                type: 'POST',
+                headers: {'X-CSRFToken': SciCollabUI.csrfToken()},
                 success: function(data) {
                     if (data.success) {
                         // Remove notification with animation
@@ -394,7 +375,8 @@
         function acceptInvite(id, button) {
             $.ajax({
                 url: `/notifications/${id}/accept`,
-                type: 'GET',
+                type: 'POST',
+                headers: {'X-CSRFToken': SciCollabUI.csrfToken()},
                 dataType: 'json',
                 success: function(data) {
                     if (data && data.success === true) {
@@ -437,7 +419,8 @@
         function rejectInvite(id, button) {
             $.ajax({
                 url: `/notifications/${id}/reject`,
-                type: 'GET',
+                type: 'POST',
+                headers: {'X-CSRFToken': SciCollabUI.csrfToken()},
                 dataType: 'json',
                 success: function(data) {
                     if (data && data.success === true) {
@@ -511,13 +494,7 @@
                                 console.log("[CLIENT] Live search results:", data);
                                 $searchResultsDropdown.empty();
                                 if (data && data.length > 0) {
-                                    let html = '<ul>';
-                                    data.forEach(function(item) {
-                                        let icon = item.type === 'project' ? '<i class="fas fa-folder"></i>' : '<i class="fas fa-comments"></i>';
-                                        html += `<li><a href="${item.url}">${icon} ${item.title || item.name} <small class="text-muted">(${item.type})</small></a></li>`;
-                                    });
-                                    html += '</ul>';
-                                    $searchResultsDropdown.html(html).show();
+                                    $searchResultsDropdown.empty().append(SciCollabUI.searchResults(data)).show();
                                 } else {
                                     $searchResultsDropdown.html('<ul><li><span class="text-muted">No instant results found.</span></li></ul>').show();
                                 }

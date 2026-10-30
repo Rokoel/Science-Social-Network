@@ -14,7 +14,7 @@
     <div class="profile-container">
         <div class="profile-sidebar">
             <div class="profile-avatar-container">
-                <img src="{{ url_for('static', filename='uploads/' + user_to_display.avatar) }}" alt="Profile Avatar" class="profile-avatar">
+                <img src="{{ url_for('users.avatar', user_id=user_to_display.id) }}" alt="Profile Avatar" class="profile-avatar">
             </div>
 
             <div class="profile-info">
@@ -94,7 +94,10 @@
                             {% for chat in item.eligible_chats %}
                                 <li>
                                     {{ chat.name }}
-                                    <a href="{{ url_for('chats.invite_user', id=chat.id, user_id=user_to_display.id) }}" class="btn btn-sm btn-outline-primary float-end">Invite</a>
+                                    <form method="post" action="{{ url_for('chats.invite_user', id=chat.id, user_id=user_to_display.id) }}" class="action-form">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        <button type="submit" class="btn btn-sm btn-outline-primary float-end">Invite</button>
+                                    </form>
                                 </li>
                             {% endfor %}
                             </ul>

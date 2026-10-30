@@ -619,7 +619,10 @@
             
             <div class="project-actions">
                 {% if current_user in project.members %}
-                    <a href="{{ url_for('projects.leave', id=project.id) }}" class="empty-button danger-button" onclick="return confirm('Are you sure you want to leave this project?')">Leave Project</a>
+                    <form method="post" action="{{ url_for('projects.leave', id=project.id) }}" class="action-form" data-confirm="Are you sure you want to leave this project?">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="empty-button danger-button">Leave Project</button>
+                    </form>
                 {% elif project.is_public %}
                     {% set pending_application = namespace(found=false) %}
                     {% for notif in current_user.sent_notifications.filter_by(project_id=project.id, notification_type='invite', invite_type='project_application', status='not_answered').all() %}
@@ -631,7 +634,10 @@
                     {% if pending_application.found %}
                         <button class="empty-button" disabled>Application Pending</button>
                     {% else %}
-                        <a href="{{ url_for('projects.apply', id=project.id) }}" class="full-button success-button">Apply to Project</a>
+                        <form method="post" action="{{ url_for('projects.apply', id=project.id) }}" class="action-form">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button type="submit" class="full-button success-button">Apply to Project</button>
+                        </form>
                     {% endif %}
                 {% elif not project.is_public and not current_user in project.members %}
                      <button class="empty-button" disabled>Private Project</button>
@@ -641,14 +647,17 @@
                     <a href="{{ url_for('projects.edit', id=project.id) }}" class="full-button">Edit Project</a>
                 {% endif %}
                 {% if current_user.id == project.creator_id %}
-                    <a href="{{ url_for('projects.delete_project', id=project.id) }}" class="empty-button danger-button" onclick="return confirm('Are you sure you want to delete this project? This action cannot be undone.')">Delete Project</a>
+                    <form method="post" action="{{ url_for('projects.delete_project', id=project.id) }}" class="action-form" data-confirm="Are you sure you want to delete this project? This action cannot be undone.">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="empty-button danger-button">Delete Project</button>
+                    </form>
                 {% endif %}
             </div>
         </div>
         
         {% if project.image %}
             <div class="project-image-container">
-                <img src="{{ url_for('static', filename='uploads/' + project.image) }}" alt="Project Image">
+                <img src="{{ url_for('projects.image', id=project.id) }}" alt="Project Image">
             </div>
         {% else %}
             <div class="project-image-container">
@@ -757,7 +766,7 @@
                     {% for admin in project.admins %}
                         <div class="member-item">
                             <div class="member-info">
-                                <img src="{{ url_for('static', filename='uploads/' + admin.avatar) }}" class="member-avatar" alt="{{ admin.username }}">
+                                <img src="{{ url_for('users.avatar', user_id=admin.id) }}" class="member-avatar" alt="{{ admin.username }}">
                                 <div class="member-details">
                                     <a href="{{ url_for('users.view_profile', user_id=admin.id) }}" class="member-name">{{ admin.username }}</a>
                                     <div class="member-badges">
@@ -768,7 +777,10 @@
                             </div>
                             {% if current_user in project.admins and admin != current_user and admin != project.creator %}
                                 <div class="member-actions">
-                                    <a href="{{ url_for('projects.manage_member', project_id=project.id, user_id=admin.id, action='remove_admin') }}" class="empty-button" onclick="return confirm('Are you sure you want to remove admin rights from {{ admin.username }}?')">Remove Admin</a>
+                                    <form method="post" action="{{ url_for('projects.manage_member', project_id=project.id, user_id=admin.id, action='remove_admin') }}" class="action-form" data-confirm="Are you sure you want to remove admin rights from {{ admin.username }}?">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        <button type="submit" class="empty-button">Remove Admin</button>
+                                    </form>
                                 </div>
                             {% elif current_user in project.admins and admin == project.creator and project.creator != current_user %}
                                 <div class="member-actions">
@@ -787,7 +799,7 @@
                         {% if member not in project.admins %}
                             <div class="member-item">
                                 <div class="member-info">
-                                    <img src="{{ url_for('static', filename='uploads/' + member.avatar) }}" class="member-avatar" alt="{{ member.username }}">
+                                    <img src="{{ url_for('users.avatar', user_id=member.id) }}" class="member-avatar" alt="{{ member.username }}">
                                     <div class="member-details">
                                         <a href="{{ url_for('users.view_profile', user_id=member.id) }}" class="member-name">{{ member.username }}</a>
                                         <div class="member-badges">
@@ -797,8 +809,14 @@
                                 </div>
                                 {% if current_user in project.admins and member.id != current_user.id %}
                                     <div class="member-actions">
-                                        <a href="{{ url_for('projects.manage_member', project_id=project.id, user_id=member.id, action='make_admin') }}" class="full-button">Make Admin</a>
-                                        <a href="{{ url_for('projects.manage_member', project_id=project.id, user_id=member.id, action='remove_member') }}" class="empty-button danger-button" onclick="return confirm('Are you sure you want to remove {{ member.username }} from the project?')">Remove</a>
+                                        <form method="post" action="{{ url_for('projects.manage_member', project_id=project.id, user_id=member.id, action='make_admin') }}" class="action-form">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                            <button type="submit" class="full-button">Make Admin</button>
+                                        </form>
+                                        <form method="post" action="{{ url_for('projects.manage_member', project_id=project.id, user_id=member.id, action='remove_member') }}" class="action-form" data-confirm="Are you sure you want to remove {{ member.username }} from the project?">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                            <button type="submit" class="empty-button danger-button">Remove</button>
+                                        </form>
                                     </div>
                                 {% endif %}
                             </div>

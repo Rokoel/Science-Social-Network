@@ -1,0 +1,31 @@
+services:
+  app:
+    build: .
+    ports:
+      - "127.0.0.1:${APP_PORT:-5000}:5000"
+    environment:
+      SECRET_KEY: ${SECRET_KEY:?Set SECRET_KEY in .env before starting}
+      DATABASE_URL: sqlite:////app/instance/app.db
+      UPLOAD_FOLDER: /app/instance/uploads
+      REDIS_URL: redis://redis:6379/0
+    volumes:
+      - app-data:/app/instance
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+  redis:
+    image: redis:7.4-alpine@sha256:8da19c7399dca900c6822a1cf30f9d2285585e2c4b457ff4095b0f4500054d3f
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
+volumes:
+  app-data:
+  redis-data:

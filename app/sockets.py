@@ -1,4 +1,4 @@
-from flask import request, current_app
+from flask import request, current_app, url_for
 from flask_socketio import emit, join_room, leave_room
 from flask_login import current_user
 from app import socketio, db
@@ -75,7 +75,12 @@ def handle_send_message(data):
         return
 
     saved_file_path = None
-    if file_data and file_name:
+    if file_data:
+        if (not isinstance(file_data, bytes) or not isinstance(file_name, str)
+                or not secure_filename(file_name)
+                or len(file_data) > current_app.config['MAX_CONTENT_LENGTH']):
+            emit('error', {'message': 'Invalid attachment or file exceeds the upload limit'})
+            return
         try:
             filename = secure_filename(f"{uuid.uuid4()}_{file_name}")
             filepath = os.path.join(current_app.config['UPLOAD_FOLDER'], filename)
@@ -87,8 +92,7 @@ def handle_send_message(data):
         except Exception as e:
             current_app.logger.warning(f"IMPORTANT! File upload failed for user {current_user.username} in chat {chat_id}")
             emit('error', {'message': 'File upload failed'})
-            # Optionally, do not proceed with message saving if file upload is critical and failed
-            # return 
+            return
     
     message = Message(
         text=text if text else None, # Store None if text is empty
@@ -106,8 +110,10 @@ def handle_send_message(data):
         'timestamp': message.timestamp.isoformat(),
         'user_id': message.user_id,
         'username': message.author.username, # Use message.author for consistency
-        'user_avatar': message.author.avatar,
-        'file': message.file, # This will be the server path
+        'avatar_url': url_for('users.avatar', user_id=message.user_id),
+        'file': message.file,
+        'attachment_url': url_for('chats.attachment', message_id=message.id) if message.file else None,
+        'preview_url': url_for('chats.attachment', message_id=message.id, preview=1) if message.file else None,
         'chat_id': chat.id
     }, room=f'chat_{chat_id}')
     if not current_user.is_authenticated:

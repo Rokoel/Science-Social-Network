@@ -101,7 +101,7 @@
             {% if project.image %}
             <div class="project-image-preview-container">
                 <div class="project-image-preview">
-                    <img src="{{ url_for('static', filename='uploads/' + project.image) }}" alt="Current Project Image">
+                    <img src="{{ url_for('projects.image', id=project.id) }}" alt="Current Project Image">
                     <div class="image-overlay">
                         <span class="tag non-clickable">Current Image</span>
                     </div>

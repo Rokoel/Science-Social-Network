@@ -32,10 +32,16 @@
                         Members
                     </button>
                     {% if current_user.id == chat.creator_id or current_user in project.admins %}
-                        <a href="{{ url_for('chats.delete_chat', chat_id=chat.id) }}" class="empty-button danger-button" onclick="return confirm('Are you sure you want to delete this chat and all its messages? This cannot be undone.');">Delete Chat</a>
+                        <form method="post" action="{{ url_for('chats.delete_chat', chat_id=chat.id) }}" class="action-form" data-confirm="Are you sure you want to delete this chat and all its messages? This cannot be undone.">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button type="submit" class="empty-button danger-button">Delete Chat</button>
+                        </form>
                     {% endif %}
                     {% if current_user in chat.members %}
-                        <a href="{{ url_for('chats.leave_chat', chat_id=chat.id) }}" class="empty-button warning-button" onclick="return confirm('Are you sure you want to leave this chat?')">Leave Chat</a>
+                        <form method="post" action="{{ url_for('chats.leave_chat', chat_id=chat.id) }}" class="action-form" data-confirm="Are you sure you want to leave this chat?">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button type="submit" class="empty-button warning-button">Leave Chat</button>
+                        </form>
                     {% endif %}
                 </div>
             </div>
@@ -45,7 +51,7 @@
                     <div class="message {% if message.user_id == current_user.id %}message-outgoing{% else %}message-incoming{% endif %}" id="message-{{ message.id }}">
                         <div class="message-avatar">
                             {% if message.author %}
-                                <img src="{{ url_for('static', filename='uploads/' + message.author.avatar) }}" alt="{{ message.author.username }}">
+                                <img src="{{ url_for('users.avatar', user_id=message.author.id) }}" alt="{{ message.author.username }}">
                             {% endif %}
                         </div>
                         <div class="message-content">
@@ -63,10 +69,10 @@
                                 {% if message.text %}<p>{{ message.text | nl2br }}</p>{% endif %}
                                 {% if message.file %}
                                     <div class="message-attachment">
-                                        <a href="{{ url_for('static', filename='uploads/' + message.file) }}" target="_blank">
+                                        <a href="{{ url_for('chats.attachment', message_id=message.id) }}" target="_blank">
                                             {% set filename_lower = message.file.lower() %}
                                             {% if filename_lower.endswith(('.jpg', '.jpeg', '.png', '.gif')) %}
-                                                <img src="{{ url_for('static', filename='uploads/' + message.file) }}" alt="Attachment" class="message-image">
+                                                <img src="{{ url_for('chats.attachment', message_id=message.id, preview=1) }}" alt="Attachment" class="message-image">
                                             {% else %}
                                                 <div class="file-attachment">
                                                     <img src="{{ url_for('static', filename='images/file-svgrepo-com.svg') }}" alt="File" class="file-icon">
@@ -126,10 +132,13 @@
 
                             {% if invitable_members_list %}
                                 {% for member_to_invite in invitable_members_list %}
-                                    <a class="invite-item empty-button" href="{{ url_for('chats.invite_user', id=chat.id, user_id=member_to_invite.id) }}">
-                                        <img src="{{ url_for('static', filename='uploads/' + member_to_invite.avatar) }}" alt="{{ member_to_invite.username }}" class="member-avatar-small">
+                                    <form method="post" action="{{ url_for('chats.invite_user', id=chat.id, user_id=member_to_invite.id) }}" class="action-form">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        <button type="submit" class="invite-item empty-button">
+                                        <img src="{{ url_for('users.avatar', user_id=member_to_invite.id) }}" alt="{{ member_to_invite.username }}" class="member-avatar-small">
                                         {{ member_to_invite.username }}
-                                    </a>
+                                    </button>
+                                    </form>
                                 {% endfor %}
                             {% else %}
                                 <div class="no-invite-members">No new project members to invite.</div>
@@ -143,7 +152,7 @@
                 {% for member in chat.members|sort(attribute='username') %}
                     <div class="member-item">
                         <div class="member-info">
-                            <img src="{{ url_for('static', filename='uploads/' + member.avatar) }}" alt="{{ member.username }}" class="member-avatar">
+                            <img src="{{ url_for('users.avatar', user_id=member.id) }}" alt="{{ member.username }}" class="member-avatar">
                             <div class="member-details">
                                 <a href="{{ url_for('users.view_profile', user_id=member.id) }}" class="member-name">{{ member.username }}</a>
                                 <div class="member-badges">
@@ -153,9 +162,12 @@
                             </div>
                         </div>
                         {% if current_user in project.admins and member != current_user and member != chat.creator %}
-                            <a href="{{ url_for('chats.kick_user_from_chat', chat_id=chat.id, user_id=member.id) }}" class="empty-button danger-button member-remove" onclick="return confirm('Are you sure you want to remove {{ member.username }} from this chat?')" title="Remove from chat">
+                            <form method="post" action="{{ url_for('chats.kick_user_from_chat', chat_id=chat.id, user_id=member.id) }}" class="action-form" data-confirm="Are you sure you want to remove {{ member.username }} from this chat?">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="submit" class="empty-button danger-button member-remove" title="Remove from chat">
                                 Remove
-                            </a>
+                            </button>
+                            </form>
                         {% endif %}
                     </div>
                 {% endfor %}
@@ -207,63 +219,13 @@
         socket.on('new_message', function(message) {
             if (message.chat_id !== chatId) return; 
 
-            const isOwnMessage = message.user_id === currentUserId;
-            const messageClass = isOwnMessage ? 'message-outgoing' : 'message-incoming';
-            
-            let fileContent = '';
-            if (message.file) {
-                const filePath = `/static/uploads/${message.file}`; 
-                const isImage = ['jpg', 'jpeg', 'png', 'gif'].some(ext => message.file.toLowerCase().endsWith('.' + ext));
-                
-                if (isImage) {
-                    fileContent = `
-                        <div class="message-attachment">
-                            <a href="${filePath}" target="_blank">
-                                <img src="${filePath}" alt="Attachment" class="message-image">
-                            </a>
-                        </div>
-                    `;
-                } else {
-                    fileContent = `
-                        <div class="message-attachment">
-                            <a href="${filePath}" target="_blank">
-                                <div class="file-attachment">
-                                    <img src="/static/images/file-svgrepo-com.svg" alt="File" class="file-icon">
-                                    <span>${message.file.split('_').slice(1).join('_') || message.file}</span>
-                                </div>
-                            </a>
-                        </div>
-                    `;
-                }
-            }
-            
-            const messageTextHtml = message.text ? `<p>${message.text.replace(/\n/g, '<br>')}</p>` : '';
+            const messageNode = SciCollabUI.message(message, currentUserId);
 
-            const messageHtml = `
-                <div class="message ${messageClass}" id="message-${message.id}">
-                    <div class="message-avatar">
-                        <img src="/static/uploads/${message.user_avatar}" alt="${message.username}">
-                    </div>
-                    <div class="message-content">
-                        <div class="message-header">
-                            <span class="message-author">
-                                <a href="/users/view/${message.user_id}">${message.username}</a>
-                            </span>
-                            <span class="message-time">${new Date(message.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
-                        </div>
-                        <div class="message-body">
-                            ${messageTextHtml}
-                            ${fileContent}
-                        </div>
-                    </div>
-                </div>
-            `;
-            
             if ($('.no-messages').length) {
                 $('.no-messages').remove();
             }
             
-            $('#message-container').prepend(messageHtml); 
+            messageContainer.prepend(messageNode);
             if (messageContainer) {
                 messageContainer.scrollTop = messageContainer.scrollHeight;
             }

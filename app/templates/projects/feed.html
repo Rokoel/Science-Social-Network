@@ -59,6 +59,12 @@
             justify-content: center;
         }
 
+        .project-image:not(.generic) img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
         .project-image.generic img {
             width: 60px;
             height: 60px;
@@ -228,51 +234,6 @@ let loadedProjects = [];
 let loading = false;
 let totalProjects = null;
 
-function renderProjectCard(project, index) {
-    let tagsHtml = '';
-    if (project.tags && project.tags.length) {
-        tagsHtml = project.tags.map(tag => `<span class="project-tag">${tag}</span>`).join('');
-    }
-    
-    let imageHtml = '';
-    if (project.image) {
-        if (project.image.includes('.svg')) {
-            imageHtml = `<div class="project-image generic">
-                            <img src="${project.image}" alt="${project.title}">
-                        </div>`;
-        } else {
-            imageHtml = `<div class="project-image" style="background-image: url('${project.image}');"></div>`;
-        }
-    } else {
-        imageHtml = `<div class="project-image generic">
-                        <img src="{{ url_for('static', filename='uploads/default-project.svg') }}" alt="Generic Project">
-                    </div>`;
-    }
-    
-    return `
-    <div class="project-card" data-index="${index}">
-        ${imageHtml}
-        <div class="project-card-content">
-            <h2 class="project-title">${project.title}</h2>
-            ${tagsHtml ? `<div class="project-tags">${tagsHtml}</div>` : ''}
-            ${project.description ? `<p class="project-description">${project.description}</p>` : ''}
-            ${project.goals ? `
-                <div class="project-goals-title">Goals</div>
-                <p class="project-goals">${project.goals}</p>
-            ` : ''}
-            <div class="project-meta">
-                <div>By <a href="${project.creator ? '/users/view/' + project.creator.id : '#'}">${project.creator ? project.creator.username : 'Unknown'}</a></div>
-                <div>Deadline: ${project.deadline || 'No deadline set'}</div>
-            </div>
-            <div class="project-actions">
-                <a href="${project.apply_url}" class="full-button">Apply to Join</a>
-                <a href="${project.view_url}" class="full-button">View Details</a>
-            </div>
-        </div>
-    </div>
-    `;
-}
-
 function renderProjects() {
     const grid = document.getElementById('project-grid');
     
@@ -288,11 +249,7 @@ function renderProjects() {
         return;
     }
     
-    let html = '';
-    loadedProjects.forEach((project, index) => {
-        html += renderProjectCard(project, index);
-    });
-    grid.innerHTML = html;
+    grid.replaceChildren(...loadedProjects.map((project, index) => SciCollabUI.projectCard(project, index)));
     applyProjectFeedTranslation(grid);
     
     // Show end of feed message if all projects are loaded

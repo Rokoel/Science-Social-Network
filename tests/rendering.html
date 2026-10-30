@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="csrf-token" content="test-csrf-token">
+    <title>Rendering security regression tests</title>
+    <script src="../app/static/js/ui.js"></script>
+</head>
+<body>
+    <h1>Rendering security regression tests</h1>
+    <pre id="results">Running…</pre>
+    <div id="fixture"></div>
+    <script>
+        const checks = [];
+        const fixture = document.getElementById('fixture');
+        const payload = `<img src=x onerror="window.xssExecuted=true"><svg onload="window.xssExecuted=true">'"&`;
+        window.xssExecuted = false;
+        function check(name, condition) {
+            checks.push({name, passed: Boolean(condition)});
+        }
+        const project = SciCollabUI.projectCard({
+            title: payload, description: payload, goals: payload, tags: [payload],
+            creator: {id: 1, username: payload}, deadline: payload,
+            image: null, apply_url: '/projects/1/apply', view_url: '/projects/1',
+        }, 0);
+        fixture.append(project);
+        ['.project-title', '.project-description', '.project-goals', '.project-tag'].forEach(selector => {
+            check(`Project ${selector} stays literal`, project.querySelector(selector).textContent === payload);
+        });
+        check('Apply is a POST form with CSRF', project.querySelector('form').method === 'post'
+            && project.querySelector('[name="csrf_token"]').value === 'test-csrf-token');
+
+        const message = SciCollabUI.message({
+            id: 1, user_id: 1, username: payload, text: payload + '\nsecond line',
+            avatar_url: '/users/1/avatar', file: 'uuid_' + payload,
+            attachment_url: '/chats/messages/1/attachment', timestamp: '2026-01-01T00:00:00Z',
+        }, 1);
+        fixture.append(message);
+        check('Chat text and newlines stay literal', message.querySelector('.message-text').textContent === payload + '\nsecond line');
+        check('Chat author stays literal', message.querySelector('.message-author').textContent === payload);
+        check('Attachment name stays literal', message.querySelector('.file-attachment').textContent === payload);
+        check('Attachment uses authorized URL', message.querySelector('.message-attachment a').pathname === '/chats/messages/1/attachment');
+
+        const notification = SciCollabUI.notification({
+            id: 2, text: payload, sender: {id: 1, username: payload},
+            type: 'invite', timestamp: '2026-01-01',
+        }, () => 'today');
+        fixture.append(notification);
+        check('Notification text stays literal', notification.querySelector('p').textContent === payload);
+        check('Notification sender stays literal', notification.querySelector('a').textContent === payload);
+        check('Invitation controls remain available', notification.querySelectorAll('button').length === 3);
+
+        const search = SciCollabUI.searchResults([{title: payload, type: payload, url: '/projects/1'}]);
+        fixture.append(search);
+        check('Search result stays literal', search.querySelector('a').textContent === `${payload} (${payload})`);
+
+        for (const url of ['javascript:window.xssExecuted=true', '//evil.example/x', '/\\evil.example/x', 'http://[']) {
+            const result = SciCollabUI.searchResults([{name: 'bad link', type: 'chat', url}]);
+            check(`Reject unsafe URL ${url}`, result.querySelector('a').getAttribute('href') === '#');
+        }
+        check('No injected elements or event handlers', !fixture.querySelector('svg, [onerror], [onload], script'));
+
+        const form = document.createElement('form');
+        form.dataset.confirm = payload;
+        fixture.append(form);
+        const originalConfirm = window.confirm;
+        let confirmedText;
+        window.confirm = text => { confirmedText = text; return false; };
+        const submitted = form.dispatchEvent(new Event('submit', {bubbles: true, cancelable: true}));
+        window.confirm = originalConfirm;
+        check('Confirmation text is data and cancellation prevents submit', confirmedText === payload && !submitted);
+
+        setTimeout(() => {
+            check('No script executed', !window.xssExecuted);
+            window.renderingTestResults = checks;
+            const failed = checks.filter(check => !check.passed);
+            document.getElementById('results').textContent = `${checks.length - failed.length}/${checks.length} passed\n`
+                + checks.map(check => `${check.passed ? 'PASS' : 'FAIL'} ${check.name}`).join('\n');
+        }, 100);
+    </script>
+</body>
+</html>

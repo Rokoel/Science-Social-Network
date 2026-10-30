@@ -1,9 +1,10 @@
-from flask import Blueprint, render_template, redirect, url_for, flash, request, jsonify, current_app, send_from_directory, abort
+from flask import Blueprint, render_template, redirect, url_for, flash, request, jsonify, current_app, abort
 from flask_login import current_user, login_required
 from app import db, limiter, socketio
 from app.models import Project, User, Chat, Notification, ProjectMaterial, chat_members
 from app.forms import ProjectForm, EditProjectForm
 from app.utils import load_tags
+from app.uploads import send_upload
 from datetime import datetime, time, timedelta
 from sqlalchemy import or_, and_
 from app.utils import secure_filename
@@ -32,12 +33,14 @@ def combine_date_time(date_obj, time_obj):
         # If neither date nor time is provided, return a date 100 years from now with time set to 00:00:00
         return datetime.now() + timedelta(days=365 * 100)
 
-def save_materials(files, project, user):
+def save_materials(files, project, user, created_files=None):
     for file in files:
         if file and file.filename:
             original_name = secure_filename(file.filename)
             filename = secure_filename(f"{uuid.uuid4()}_{original_name}")
             filepath = os.path.join(current_app.config['UPLOAD_FOLDER'], filename)
+            if created_files is not None:
+                created_files.append(filepath)
             file.save(filepath)
             material = ProjectMaterial(
                 filename=filename,
@@ -134,7 +137,7 @@ def feed_ajax():
                 'username': project.creator.username
             },
             'deadline': project.deadline.strftime('%d/%m/%Y') if project.deadline else None,
-            'image': url_for('static', filename='uploads/' + project.image) if project.image else None,
+            'image': url_for('projects.image', id=project.id) if project.image else None,
             'apply_url': url_for('projects.apply', id=project.id),
             'view_url': url_for('projects.view', id=project.id)
         })
@@ -147,8 +150,6 @@ def feed_ajax():
 @login_required
 # @limiter.limit("10 per hour", per_method=True, methods=["POST"])
 def create():
-    # test logging
-    current_app.logger.info("Creating a new project")
     tags = load_tags()
     form = ProjectForm()
     form.tags.choices = [(tag, tag) for tag in tags['skills'] + tags['fields']]
@@ -168,43 +169,52 @@ def create():
             # It's unlikely to reach here if DateField has DataRequired, but good for safety
             return render_template('projects/create.html', title='Create Project', form=form)
         
-        image_filename = ""
-        if form.image.data:
-            filename = secure_filename(f"{uuid.uuid4()}_{form.image.data.filename}")
-            filepath = os.path.join(current_app.config['UPLOAD_FOLDER'], filename)
-            form.image.data.save(filepath)
-            image_filename += filename
-        
-        project = Project(
-            title=form.title.data,
-            description=form.description.data,
-            goals=form.goals.data,
-            tags=form.tags.data,
-            image=image_filename,
-            creator_id=current_user.id,
-            deadline=combined_deadline,
-            project_type=project_type_data,
-            is_public=form.is_public.data
-        )
-        
-        # Add creator as admin and member
-        project.admins.append(current_user)
-        project.members.append(current_user)
-        
-        db.session.add(project)
-        db.session.commit()
+        created_files = []
+        try:
+            image_filename = ""
+            if form.image.data:
+                image_filename = secure_filename(f"{uuid.uuid4()}_{form.image.data.filename}")
+                filepath = os.path.join(current_app.config['UPLOAD_FOLDER'], image_filename)
+                # Track before writing so a partial write is cleaned up too.
+                created_files.append(filepath)
+                form.image.data.save(filepath)
 
-        save_materials(form.materials.data, project, current_user)
-        db.session.commit()
-        
-        # Create default chat
-        chat = Chat(name=f"{project.title} Chat", creator_id=current_user.id, project_id=project.id)
-        chat.members.append(current_user)
-        db.session.add(chat)
-        db.session.commit()
+            project = Project(
+                title=form.title.data,
+                description=form.description.data,
+                goals=form.goals.data,
+                tags=form.tags.data,
+                image=image_filename,
+                creator_id=current_user.id,
+                deadline=combined_deadline,
+                project_type=project_type_data,
+                is_public=form.is_public.data
+            )
+            project.admins.append(current_user)
+            project.members.append(current_user)
+            db.session.add(project)
+            # Obtain the ID without committing any part of the project.
+            db.session.flush()
+            save_materials(form.materials.data, project, current_user, created_files)
 
-        current_app.logger.info("Test!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-        
+            chat = Chat(name=f"{project.title} Chat", creator_id=current_user.id,
+                        project_id=project.id)
+            chat.members.append(current_user)
+            db.session.add(chat)
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
+            for filepath in created_files:
+                try:
+                    os.remove(filepath)
+                except FileNotFoundError:
+                    pass
+                except OSError:
+                    current_app.logger.exception("Could not clean up project upload %s", filepath)
+            current_app.logger.exception("Project creation failed")
+            flash('Your project could not be created. Please try again.', 'error')
+            return render_template('projects/create.html', title='Create Project', form=form), 500
+
         flash('Your project has been created!', 'success')
         return redirect(url_for('projects.view', id=project.id))
     
@@ -236,7 +246,7 @@ def view(id):
                           sorted_chats=sorted_chats,
                           ProjectMaterial=ProjectMaterial)
 
-@projects_bp.route('/<int:id>/apply')
+@projects_bp.route('/<int:id>/apply', methods=['POST'])
 @login_required
 def apply(id):
     project = Project.query.get_or_404(id)
@@ -268,7 +278,7 @@ def apply(id):
         sender_id=current_user.id,
         notification_type='invite', # Requires action from creator
         invite_type='project_application',
-        text=f"User <a href='{url_for('users.view_profile', user_id=current_user.id)}'>{current_user.username}</a> has applied to join your project: '{project.title}'.",
+        text=f"User {current_user.username} has applied to join your project: '{project.title}'.",
         project_id=project.id,
         status='not_answered' # For the creator's action
     )
@@ -282,7 +292,7 @@ def apply(id):
     flash('Your application has been sent to the project creator.', 'success')
     return redirect(url_for('projects.view', id=project.id))
 
-@projects_bp.route('/<int:id>/leave')
+@projects_bp.route('/<int:id>/leave', methods=['POST'])
 @login_required
 def leave(id):
     project = Project.query.get_or_404(id)
@@ -489,7 +499,7 @@ def search_results_page():
                            projects=projects_paginated,
                            chats=chats_paginated)
 
-@projects_bp.route('/<int:project_id>/manage_member/<int:user_id>/<action>')
+@projects_bp.route('/<int:project_id>/manage_member/<int:user_id>/<action>', methods=['POST'])
 @login_required
 def manage_member(project_id, user_id, action):
     project = Project.query.get_or_404(project_id)
@@ -499,11 +509,11 @@ def manage_member(project_id, user_id, action):
         flash('Only project admins can manage members.', 'error')
         return redirect(url_for('projects.view', id=project.id))
 
-    if user_to_manage == project.creator and action == "remove":
+    if user_to_manage == project.creator and action == "remove_member":
         flash("The project creator cannot be removed by other admins.", 'error')
         return redirect(url_for('projects.view', id=project.id))
     
-    if user_to_manage == current_user and action == "remove" and len(project.admins) == 1:
+    if user_to_manage == current_user and action == "remove_member" and len(project.admins) == 1:
         flash("You cannot remove yourself as the sole admin.", 'error')
         return redirect(url_for('projects.view', id=project.id))
 
@@ -571,7 +581,7 @@ def manage_member(project_id, user_id, action):
 
     return redirect(url_for('projects.view', id=project.id))
 
-@projects_bp.route('/<int:id>/delete', methods=['GET', 'POST'])
+@projects_bp.route('/<int:id>/delete', methods=['POST'])
 @login_required
 def delete_project(id):
     project = Project.query.get_or_404(id)
@@ -600,6 +610,15 @@ def delete_project(id):
         flash("An error occurred while trying to delete the project. Please try again.", 'error')
         return redirect(url_for('projects.view', id=project.id))
 
+@projects_bp.route('/<int:id>/image')
+@login_required
+def image(id):
+    project = Project.query.get_or_404(id)
+    if not project.is_public and current_user not in project.members:
+        abort(403)
+    return send_upload(project.image, image=True)
+
+
 @projects_bp.route('/materials/<int:material_id>/download')
 @login_required
 def download_material(material_id):
@@ -607,7 +626,7 @@ def download_material(material_id):
     if not material.project.is_public and current_user not in material.project.members:
         abort(403)
     
-    return send_from_directory('static/uploads', material.filename, as_attachment=True, download_name=material.original_name)
+    return send_upload(material.filename, download_name=material.original_name)
 
 @projects_bp.route('/materials/<int:material_id>/delete', methods=['POST'])
 @login_required
